@@ -1,0 +1,292 @@
+{% load i18n static %}
+{% get_current_language as LANGUAGE_CODE %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>{% block head_title %}Flexy Medical{% endblock %}</title>
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem("theme");
+            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+                document.documentElement.classList.add("dark");
+            } else {
+                document.documentElement.classList.remove("dark");
+            }
+        })();
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f28c26",
+                        "primary-dark": "#d97310", 
+                        "background-light": "#f8f7f5",
+                        "background-dark": "#221910",
+                        "text-main": "#3E4A4F",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        html { scroll-behavior: smooth; }
+        #globalLoader {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(248, 247, 245, 0.82);
+            backdrop-filter: blur(2px);
+            transition: opacity 0.2s ease;
+        }
+        .dark #globalLoader {
+            background: rgba(34, 25, 16, 0.82);
+        }
+        #globalLoader.is-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #globalLoaderSpinner {
+            width: 44px;
+            height: 44px;
+            border: 3px solid rgba(242, 140, 38, 0.25);
+            border-top-color: #f28c26;
+            border-radius: 9999px;
+            animation: loader-spin 0.8s linear infinite;
+        }
+        @keyframes loader-spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-background-light dark:bg-background-dark text-text-main dark:text-gray-200 font-display">
+    <div id="globalLoader" role="status" aria-live="polite">
+        <div class="flex flex-col items-center gap-3">
+            <div id="globalLoaderSpinner"></div>
+            <p class="text-sm font-medium text-text-main dark:text-gray-200">
+                {% if LANGUAGE_CODE == 'tr' %}Yukleniyor...{% else %}Loading...{% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="sticky top-0 z-50 bg-white/95 dark:bg-[#1a120b]/95 backdrop-blur-sm border-b border-gray-100 dark:border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center gap-2">
+                    <a href="{% url 'home' %}" class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
+                            <span class="material-icons text-xl">medical_services</span>
+                        </div>
+                        <span class="font-bold text-2xl tracking-tight text-text-main dark:text-white">Flexy<span class="text-primary">Medical</span></span>
+                    </a>
+                </div>
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-8">
+                    <a class="text-text-main dark:text-gray-300 hover:text-primary dark:hover:text-primary font-medium transition-colors" href="{% url 'products_list' %}">{% if LANGUAGE_CODE == 'tr' %}Tum Urunler{% else %}Shop All{% endif %}</a>
+                    <a class="text-text-main dark:text-gray-300 hover:text-primary dark:hover:text-primary font-medium transition-colors" href="#">{% if LANGUAGE_CODE == 'tr' %}Diz ve Bacak{% else %}Knee &amp; Leg{% endif %}</a>
+                    <a class="text-text-main dark:text-gray-300 hover:text-primary dark:hover:text-primary font-medium transition-colors" href="#">{% if LANGUAGE_CODE == 'tr' %}Bilek ve El{% else %}Wrist &amp; Hand{% endif %}</a>
+                    <a class="text-text-main dark:text-gray-300 hover:text-primary dark:hover:text-primary font-medium transition-colors" href="#">{% if LANGUAGE_CODE == 'tr' %}Ameliyat Sonrasi{% else %}Post-Surgery{% endif %}</a>
+                </div>
+                <!-- Icons -->
+                <div class="flex items-center space-x-6">
+                    <form action="{% url 'set_language' %}" method="post" class="hidden sm:flex items-center gap-1 rounded-lg border border-gray-200 dark:border-gray-700 p-1">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" name="language" value="tr" class="px-2 py-1 text-xs font-semibold rounded {% if LANGUAGE_CODE == 'tr' %}bg-primary text-white{% else %}text-text-main dark:text-gray-300{% endif %}">
+                            TR
+                        </button>
+                        <button type="submit" name="language" value="en" class="px-2 py-1 text-xs font-semibold rounded {% if LANGUAGE_CODE == 'en' %}bg-primary text-white{% else %}text-text-main dark:text-gray-300{% endif %}">
+                            EN
+                        </button>
+                    </form>
+                    <button id="themeToggle" type="button" class="text-text-main dark:text-gray-300 hover:text-primary transition-colors" aria-label="Toggle dark mode">
+                        <span id="themeIconDark" class="material-icons hidden">dark_mode</span>
+                        <span id="themeIconLight" class="material-icons hidden">light_mode</span>
+                    </button>
+                    <a href="{% url 'products_list' %}" class="text-text-main dark:text-gray-300 hover:text-primary transition-colors" aria-label="{% if LANGUAGE_CODE == 'tr' %}Urun ara{% else %}Search products{% endif %}">
+                        <span class="material-icons">search</span>
+                    </a>
+                    <a href="{% url 'cart' %}" class="text-text-main dark:text-gray-300 hover:text-primary transition-colors relative">
+                        <span class="material-icons">shopping_bag</span>
+                        <!-- Cart count logic could go here -->
+                        {% comment %}
+                        <span class="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">2</span>
+                        {% endcomment %}
+                    </a>
+                    
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'account_profiles' %}" class="text-text-main dark:text-gray-300 hover:text-primary transition-colors">
+                            <span class="material-icons">person</span>
+                        </a>
+                        <a href="{% url 'account_logout' %}" class="text-text-main dark:text-gray-300 hover:text-primary transition-colors">
+                            <span class="material-icons">logout</span>
+                        </a>
+                    {% else %}
+                         <a href="{% url 'account_login' %}" class="text-text-main dark:text-gray-300 hover:text-primary transition-colors font-medium">
+                            {% if LANGUAGE_CODE == 'tr' %}Giris Yap{% else %}Sign In{% endif %}
+                        </a>
+                    {% endif %}
+
+                    <button class="md:hidden text-text-main dark:text-gray-300 hover:text-primary transition-colors">
+                        <span class="material-icons">menu</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 relative z-50">
+            {% for message in messages %}
+                <div class="p-4 mb-4 text-sm rounded-lg flex items-center gap-2
+                    {% if message.tags == 'success' %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300
+                    {% elif message.tags == 'error' %}bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300
+                    {% else %}bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300{% endif %}" role="alert">
+                    <span class="material-icons text-base">info</span>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    {% block content %}
+    {% endblock %}
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-[#110c08] border-t border-gray-100 dark:border-white/10 pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+                <!-- Brand Info -->
+                <div class="col-span-1 lg:col-span-1">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
+                            <span class="material-icons text-xl">medical_services</span>
+                        </div>
+                        <span class="font-bold text-xl text-text-main dark:text-white">Flexy<span class="text-primary">Medical</span></span>
+                    </div>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">
+                        {% if LANGUAGE_CODE == 'tr' %}
+                            Yenilikci ortopedik cozumlerle hareketi destekliyoruz. Doktorlarin guvendigi, sporcularin sevdigi urunler.
+                        {% else %}
+                            Empowering movement through innovative orthopedic solutions. Trusted by doctors, loved by athletes.
+                        {% endif %}
+                    </p>
+                    <div class="flex space-x-4">
+                        <a class="text-gray-400 hover:text-primary transition-colors" href="#"><i class="material-icons text-xl">facebook</i></a>
+                        <a class="text-gray-400 hover:text-primary transition-colors" href="#"><i class="material-icons text-xl">camera_alt</i></a> 
+                        <a class="text-gray-400 hover:text-primary transition-colors" href="#"><i class="material-icons text-xl">alternate_email</i></a>
+                    </div>
+                </div>
+                <!-- Quick Links -->
+                <div>
+                    <h3 class="text-sm font-semibold text-text-main dark:text-white uppercase tracking-wider mb-4">{% if LANGUAGE_CODE == 'tr' %}Magaza{% else %}Shop{% endif %}</h3>
+                    <ul class="space-y-3">
+                        <li><a class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm" href="#">{% if LANGUAGE_CODE == 'tr' %}Dizlikler{% else %}Knee Braces{% endif %}</a></li>
+                        <li><a class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm" href="#">{% if LANGUAGE_CODE == 'tr' %}Bilek Destekleri{% else %}Wrist Supports{% endif %}</a></li>
+                        <li><a class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm" href="#">{% if LANGUAGE_CODE == 'tr' %}Sirt ve Omurga{% else %}Back &amp; Spine{% endif %}</a></li>
+                        <li><a class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm" href="#">{% if LANGUAGE_CODE == 'tr' %}Ayak Bilegi Urunleri{% else %}Ankle Sleeves{% endif %}</a></li>
+                        <li><a class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm" href="#">{% if LANGUAGE_CODE == 'tr' %}Yeni Gelenler{% else %}New Arrivals{% endif %}</a></li>
+                    </ul>
+                </div>
+                <!-- Support -->
+                <div>
+                    <h3 class="text-sm font-semibold text-text-main dark:text-white uppercase tracking-wider mb-4">{% if LANGUAGE_CODE == 'tr' %}Destek{% else %}Support{% endif %}</h3>
+                    <ul class="space-y-3">
+                        <li><a class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm" href="#">{% if LANGUAGE_CODE == 'tr' %}Beden Rehberi{% else %}Size Guide{% endif %}</a></li>
+                        <li><a class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm" href="#">{% if LANGUAGE_CODE == 'tr' %}Kargo ve Iade{% else %}Shipping &amp; Returns{% endif %}</a></li>
+                        <li><a class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm" href="#">{% if LANGUAGE_CODE == 'tr' %}Garanti Bilgisi{% else %}Warranty Info{% endif %}</a></li>
+                        <li><a class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm" href="#">{% if LANGUAGE_CODE == 'tr' %}Iletisim{% else %}Contact Us{% endif %}</a></li>
+                        <li><a class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm" href="#">{% if LANGUAGE_CODE == 'tr' %}SSS{% else %}FAQ{% endif %}</a></li>
+                    </ul>
+                </div>
+                <!-- Newsletter -->
+                <div>
+                    <h3 class="text-sm font-semibold text-text-main dark:text-white uppercase tracking-wider mb-4">{% if LANGUAGE_CODE == 'tr' %}Haberdar Olun{% else %}Stay Connected{% endif %}</h3>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">{% if LANGUAGE_CODE == 'tr' %}Iyilesme ipuclari ve ozel tekliflerden haberdar olmak icin abone olun.{% else %}Subscribe for recovery tips and exclusive offers.{% endif %}</p>
+                    <form class="flex flex-col gap-2">
+                        <input class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-text-main dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm" placeholder="{% if LANGUAGE_CODE == 'tr' %}E-posta adresinizi girin{% else %}Enter your email{% endif %}" type="email"/>
+                        <button class="w-full px-4 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors text-sm" type="submit">{% if LANGUAGE_CODE == 'tr' %}Abone Ol{% else %}Subscribe{% endif %}</button>
+                    </form>
+                </div>
+            </div>
+            <div class="border-t border-gray-100 dark:border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-gray-400 text-xs">{% if LANGUAGE_CODE == 'tr' %}2023 Flexy Medical Inc. Tum haklari saklidir.{% else %}2023 Flexy Medical Inc. All rights reserved.{% endif %}</p>
+                <div class="flex gap-4">
+                     <!-- Payment Icons (using text/placeholders for now if images fail, but kept existing structure) -->
+                     <span class="text-gray-400 text-xs">Visa | Mastercard | Amex | PayPal</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+    {% block extra_body %}{% endblock %}
+    <script>
+        (function () {
+            const loader = document.getElementById("globalLoader");
+            const hideLoader = () => loader && loader.classList.add("is-hidden");
+            const showLoader = () => loader && loader.classList.remove("is-hidden");
+
+            window.addEventListener("load", hideLoader);
+            window.addEventListener("pageshow", hideLoader);
+
+            document.addEventListener("submit", function (event) {
+                const form = event.target;
+                if (!form || form.hasAttribute("data-no-loader")) return;
+                showLoader();
+            });
+
+            document.addEventListener("click", function (event) {
+                const anchor = event.target.closest("a");
+                if (!anchor || anchor.hasAttribute("data-no-loader")) return;
+                if (anchor.target === "_blank" || anchor.hasAttribute("download")) return;
+
+                const href = anchor.getAttribute("href");
+                if (!href || href.startsWith("#") || href.startsWith("javascript:")) return;
+
+                const isSameOrigin = anchor.origin === window.location.origin;
+                if (isSameOrigin) showLoader();
+            });
+
+            const html = document.documentElement;
+            const btn = document.getElementById("themeToggle");
+            const darkIcon = document.getElementById("themeIconDark");
+            const lightIcon = document.getElementById("themeIconLight");
+            if (!btn || !darkIcon || !lightIcon) return;
+
+            function syncIcon() {
+                const isDark = html.classList.contains("dark");
+                darkIcon.classList.toggle("hidden", isDark);
+                lightIcon.classList.toggle("hidden", !isDark);
+            }
+
+            btn.addEventListener("click", function () {
+                const isDark = html.classList.toggle("dark");
+                localStorage.setItem("theme", isDark ? "dark" : "light");
+                syncIcon();
+            });
+
+            syncIcon();
+        })();
+    </script>
+</body>
+</html>

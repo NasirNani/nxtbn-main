@@ -1,0 +1,40 @@
+{% extends "account/base_entrance.html" %}
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head_title %}{% if LANGUAGE_CODE == 'tr' %}Giris Yap{% else %}Sign In{% endif %}{% endblock %}
+
+{% block content %}
+<main class="max-w-md mx-auto px-4 py-12 min-h-screen">
+    <section class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2c2219] p-6">
+        <h1 class="text-2xl font-bold text-text-main dark:text-white">{% if LANGUAGE_CODE == 'tr' %}Giris Yap{% else %}Sign In{% endif %}</h1>
+        <p class="mt-2 text-sm text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Hesabiniza erismek icin bilgilerinizi girin.{% else %}Enter your details to access your account.{% endif %}</p>
+
+        <form method="post" action="{% url 'account_login' %}" class="mt-6 space-y-4">
+            {% csrf_token %}
+            <div>
+                <label for="{{ form.login.id_for_label }}" class="block text-sm font-medium mb-1">{% if LANGUAGE_CODE == 'tr' %}E-posta{% else %}Email{% endif %}</label>
+                <input id="{{ form.login.id_for_label }}" type="text" name="{{ form.login.name }}" value="{{ form.login.value|default:'' }}" class="w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900" required>
+                {% if form.login.errors %}<p class="mt-1 text-sm text-red-600">{{ form.login.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+                <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium mb-1">{% if LANGUAGE_CODE == 'tr' %}Sifre{% else %}Password{% endif %}</label>
+                <input id="{{ form.password.id_for_label }}" type="password" name="{{ form.password.name }}" class="w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900" required>
+                {% if form.password.errors %}<p class="mt-1 text-sm text-red-600">{{ form.password.errors.0 }}</p>{% endif %}
+            </div>
+            {% if redirect_field_value %}
+            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+            {% endif %}
+            <button type="submit" class="w-full px-4 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors">{% if LANGUAGE_CODE == 'tr' %}Giris Yap{% else %}Sign In{% endif %}</button>
+        </form>
+
+        <div class="mt-4 text-sm">
+            <a href="{% url 'account_reset_password' %}" class="text-primary hover:underline">{% if LANGUAGE_CODE == 'tr' %}Sifremi unuttum{% else %}Forgot password{% endif %}</a>
+        </div>
+        <div class="mt-2 text-sm text-gray-500">
+            {% if LANGUAGE_CODE == 'tr' %}Hesabiniz yok mu?{% else %}No account yet?{% endif %}
+            <a href="{% url 'account_signup' %}" class="text-primary hover:underline">{% if LANGUAGE_CODE == 'tr' %}Kayit ol{% else %}Sign up{% endif %}</a>
+        </div>
+    </section>
+</main>
+{% endblock %}

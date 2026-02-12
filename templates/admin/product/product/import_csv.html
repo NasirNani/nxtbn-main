@@ -1,0 +1,25 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div id="content-main">
+    <h1>Import products from CSV</h1>
+    <p style="margin-bottom: 16px;">
+        Columns supported:
+        <code>product_id,name,summary,description,category,brand,vendor,is_live,variant_name,sku,price,compare_at_price,stock</code>
+    </p>
+
+    <form method="post" enctype="multipart/form-data" style="max-width:640px;">
+        {% csrf_token %}
+        <fieldset class="module aligned">
+            <div class="form-row">
+                <label for="id_csv_file">CSV file</label>
+                <input type="file" id="id_csv_file" name="csv_file" accept=".csv" required>
+            </div>
+        </fieldset>
+        <div class="submit-row">
+            <input type="submit" value="Import CSV" class="default">
+            <a href="{% url 'admin:product_product_changelist' %}" class="button cancel-link">Back</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

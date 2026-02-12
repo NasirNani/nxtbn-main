@@ -1,0 +1,40 @@
+{% extends "account/base_entrance.html" %}
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head_title %}{% if LANGUAGE_CODE == 'tr' %}Kayit Ol{% else %}Sign Up{% endif %}{% endblock %}
+
+{% block content %}
+<main class="max-w-md mx-auto px-4 py-12 min-h-screen">
+    <section class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2c2219] p-6">
+        <h1 class="text-2xl font-bold text-text-main dark:text-white">{% if LANGUAGE_CODE == 'tr' %}Kayit Ol{% else %}Create Account{% endif %}</h1>
+
+        <form method="post" action="{% url 'account_signup' %}" class="mt-6 space-y-4">
+            {% csrf_token %}
+            {% for field in form %}
+                <div>
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium mb-1">{{ field.label }}</label>
+                    <input
+                        id="{{ field.id_for_label }}"
+                        type="{% if field.name|lower == 'password1' or field.name|lower == 'password2' %}password{% elif field.field.widget.input_type %}{{ field.field.widget.input_type }}{% else %}text{% endif %}"
+                        name="{{ field.html_name }}"
+                        value="{% if field.value and field.name|lower != 'password1' and field.name|lower != 'password2' %}{{ field.value }}{% endif %}"
+                        class="w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900"
+                        {% if field.field.required %}required{% endif %}
+                    >
+                    {% if field.errors %}<p class="mt-1 text-sm text-red-600">{{ field.errors.0 }}</p>{% endif %}
+                </div>
+            {% endfor %}
+            {% if redirect_field_value %}
+            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+            {% endif %}
+            <button type="submit" class="w-full px-4 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors">{% if LANGUAGE_CODE == 'tr' %}Hesap Olustur{% else %}Create Account{% endif %}</button>
+        </form>
+
+        <p class="mt-4 text-sm text-gray-500">
+            {% if LANGUAGE_CODE == 'tr' %}Zaten hesabin var mi?{% else %}Already have an account?{% endif %}
+            <a href="{% url 'account_login' %}" class="text-primary hover:underline">{% if LANGUAGE_CODE == 'tr' %}Giris yap{% else %}Sign in{% endif %}</a>
+        </p>
+    </section>
+</main>
+{% endblock %}

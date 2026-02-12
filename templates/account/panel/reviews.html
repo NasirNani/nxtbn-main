@@ -1,0 +1,72 @@
+{% extends "account/panel/base.html" %}
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head_title %}{% if LANGUAGE_CODE == 'tr' %}Yorumlarim | Flexy Medical{% else %}My Reviews | Flexy Medical{% endif %}{% endblock %}
+
+{% block panel_content %}
+<div class="rounded-xl bg-white dark:bg-[#2c2219] border border-gray-100 dark:border-gray-800 p-6">
+    <h2 class="text-xl font-semibold text-text-main dark:text-white mb-6">{% if LANGUAGE_CODE == 'tr' %}Urun Yorumlarim{% else %}My Product Reviews{% endif %}</h2>
+
+    {% if reviews %}
+        <div class="space-y-4">
+            {% for review in reviews %}
+                <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                        <div>
+                            <p class="font-semibold text-text-main dark:text-white">
+                                <a class="hover:text-primary transition-colors" href="{% url 'product_detail' review.product.id %}">{{ review.product.name }}</a>
+                            </p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ review.created_at|date:"Y-m-d H:i" }}</p>
+                        </div>
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs
+                            {% if review.status == 'approved' %}bg-green-100 text-green-700
+                            {% elif review.status == 'pending' %}bg-amber-100 text-amber-700
+                            {% else %}bg-gray-100 text-gray-700{% endif %}">
+                            {{ review.get_status_display }}
+                        </span>
+                    </div>
+
+                    <form method="post" class="mt-4 space-y-3">
+                        {% csrf_token %}
+                        <input type="hidden" name="review_id" value="{{ review.id }}">
+                        <div>
+                            <label class="block text-xs text-gray-500 dark:text-gray-300 mb-1">{% if LANGUAGE_CODE == 'tr' %}Puan{% else %}Rating{% endif %}</label>
+                            <select name="rating" class="w-full sm:w-40 rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900">
+                                {% for score in "54321" %}
+                                    <option value="{{ score }}" {% if review.rating|stringformat:"s" == score %}selected{% endif %}>{{ score }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 dark:text-gray-300 mb-1">{% if LANGUAGE_CODE == 'tr' %}Yorum{% else %}Comment{% endif %}</label>
+                            <textarea name="comment" rows="3" class="w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900">{{ review.comment }}</textarea>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button type="submit" name="action" value="update" class="inline-flex items-center px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors">{% if LANGUAGE_CODE == 'tr' %}Guncelle{% else %}Update{% endif %}</button>
+                            <button type="submit" name="action" value="delete" class="inline-flex items-center px-4 py-2 rounded-lg border border-red-300 text-red-700 text-sm font-semibold hover:bg-red-50 transition-colors">{% if LANGUAGE_CODE == 'tr' %}Sil{% else %}Delete{% endif %}</button>
+                        </div>
+                    </form>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 p-8 text-center">
+            <p class="text-gray-500 dark:text-gray-300">{% if LANGUAGE_CODE == 'tr' %}Henuz yorumunuz bulunmuyor.{% else %}You have no reviews yet.{% endif %}</p>
+            <a href="{% url 'products_list' %}" class="mt-4 inline-flex items-center px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors">{% if LANGUAGE_CODE == 'tr' %}Urunleri Kesfet{% else %}Explore Products{% endif %}</a>
+        </div>
+    {% endif %}
+
+    {% if page_obj.paginator.num_pages > 1 %}
+        <div class="mt-6 flex items-center justify-center gap-2">
+            {% if page_obj.has_previous %}
+                <a class="px-3 py-1 rounded-lg border border-gray-300 dark:border-gray-700 hover:text-primary" href="?page={{ page_obj.previous_page_number }}">Prev</a>
+            {% endif %}
+            <span class="text-sm text-gray-500 dark:text-gray-300">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+                <a class="px-3 py-1 rounded-lg border border-gray-300 dark:border-gray-700 hover:text-primary" href="?page={{ page_obj.next_page_number }}">Next</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+﻿{% extends "account/base.html" %}
+{% load i18n currency %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head_title %}{% if LANGUAGE_CODE == 'tr' %}Siparis Onaylandi | Flexy Medical{% else %}Order Confirmed | Flexy Medical{% endif %}{% endblock %}
+
+{% block content %}
+<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 min-h-screen">
+    <div class="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-[#2c2219] p-6 lg:p-8">
+        <div class="flex items-start gap-4">
+            <span class="material-icons text-green-600 text-4xl">check_circle</span>
+            <div>
+                <h1 class="text-3xl font-bold text-text-main dark:text-white">{% if LANGUAGE_CODE == 'tr' %}Siparisiniz alindi{% else %}Order confirmed{% endif %}</h1>
+                <p class="mt-2 text-gray-600 dark:text-gray-300">{% if LANGUAGE_CODE == 'tr' %}Tesekkurler. Siparisiniz basariyla olusturuldu.{% else %}Thank you. Your order was created successfully.{% endif %}</p>
+                <p class="mt-2 text-sm text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Siparis No{% else %}Order ID{% endif %}: <span class="font-mono">#{{ order.id|stringformat:"s"|slice:":8"|upper }}</span></p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 text-sm">
+            <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                <p class="text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Durum{% else %}Status{% endif %}</p>
+                <p class="mt-1 font-semibold text-text-main dark:text-white">{{ order.get_status_display }}</p>
+            </div>
+            <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                <p class="text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Odeme{% else %}Payment{% endif %}</p>
+                <p class="mt-1 font-semibold text-text-main dark:text-white">{{ order.payment_method|upper }}</p>
+            </div>
+            <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                <p class="text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Toplam{% else %}Total{% endif %}</p>
+                <p class="mt-1 font-semibold text-text-main dark:text-white">{{ order.total|try_currency }}</p>
+            </div>
+        </div>
+
+        <div class="mt-8">
+            <h2 class="text-xl font-semibold text-text-main dark:text-white mb-4">{% if LANGUAGE_CODE == 'tr' %}Urunler{% else %}Items{% endif %}</h2>
+            <div class="space-y-3">
+                {% for item in order.items.all %}
+                    <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4 flex justify-between gap-4">
+                        <div>
+                            <p class="font-semibold text-text-main dark:text-white">{{ item.product_name }}</p>
+                            <p class="text-xs text-gray-500">SKU: {{ item.sku }} - {% if LANGUAGE_CODE == 'tr' %}Adet{% else %}Qty{% endif %}: {{ item.quantity }}</p>
+                        </div>
+                        <p class="font-semibold text-text-main dark:text-white">{{ item.line_total|try_currency }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="mt-8 flex flex-wrap gap-3">
+            <a href="{% url 'account_orders' %}" class="inline-flex items-center px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 hover:text-primary transition-colors">{% if LANGUAGE_CODE == 'tr' %}Siparislerim{% else %}My Orders{% endif %}</a>
+            <a href="{% url 'order_detail' order.id %}" class="inline-flex items-center px-4 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors">{% if LANGUAGE_CODE == 'tr' %}Siparis Detayi{% else %}Order Details{% endif %}</a>
+            <a href="{% url 'order_tracking' order.id %}" class="inline-flex items-center px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 hover:text-primary transition-colors">{% if LANGUAGE_CODE == 'tr' %}Siparis Takibi{% else %}Track Order{% endif %}</a>
+            <a href="{% url 'products_list' %}" class="inline-flex items-center px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 hover:text-primary transition-colors">{% if LANGUAGE_CODE == 'tr' %}Alisverise Devam Et{% else %}Continue Shopping{% endif %}</a>
+        </div>
+    </div>
+</main>
+{% endblock content %}

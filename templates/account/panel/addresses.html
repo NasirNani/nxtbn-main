@@ -1,0 +1,77 @@
+{% extends "account/panel/base.html" %}
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head_title %}{% if LANGUAGE_CODE == 'tr' %}Adreslerim | Flexy Medical{% else %}My Addresses | Flexy Medical{% endif %}{% endblock %}
+
+{% block panel_content %}
+<div class="rounded-xl bg-white dark:bg-[#2c2219] border border-gray-100 dark:border-gray-800 p-6">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-semibold text-text-main dark:text-white">{% if LANGUAGE_CODE == 'tr' %}Adres Defteri{% else %}Address Book{% endif %}</h2>
+        <a href="{% url 'account_address_add' %}" class="inline-flex items-center px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors">
+            {% if LANGUAGE_CODE == 'tr' %}Adres Ekle{% else %}Add Address{% endif %}
+        </a>
+    </div>
+
+    {% if addresses %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% for address in addresses %}
+            <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="font-semibold text-text-main dark:text-white">{{ address.full_name }}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-300">{{ address.phone }}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-300">{{ address.address_line1 }}</p>
+                        {% if address.address_line2 %}<p class="text-sm text-gray-600 dark:text-gray-300">{{ address.address_line2 }}</p>{% endif %}
+                        <p class="text-sm text-gray-600 dark:text-gray-300">{{ address.district }}, {{ address.city }} {{ address.postal_code }}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-300">{{ address.country }}</p>
+                    </div>
+                    {% if address.label %}
+                        <span class="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">{{ address.label }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="flex flex-wrap gap-2 mt-4">
+                    {% if address.is_default_shipping %}
+                        <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">{% if LANGUAGE_CODE == 'tr' %}Varsayilan Teslimat{% else %}Default Shipping{% endif %}</span>
+                    {% else %}
+                        <form method="post" action="{% url 'account_address_default_shipping' address.id %}">
+                            {% csrf_token %}
+                            <button class="text-xs px-2 py-1 rounded-lg border border-gray-300 dark:border-gray-700 hover:text-primary transition-colors" type="submit">
+                                {% if LANGUAGE_CODE == 'tr' %}Teslimat Varsayilani Yap{% else %}Set Shipping Default{% endif %}
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    {% if address.is_default_billing %}
+                        <span class="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">{% if LANGUAGE_CODE == 'tr' %}Varsayilan Fatura{% else %}Default Billing{% endif %}</span>
+                    {% else %}
+                        <form method="post" action="{% url 'account_address_default_billing' address.id %}">
+                            {% csrf_token %}
+                            <button class="text-xs px-2 py-1 rounded-lg border border-gray-300 dark:border-gray-700 hover:text-primary transition-colors" type="submit">
+                                {% if LANGUAGE_CODE == 'tr' %}Fatura Varsayilani Yap{% else %}Set Billing Default{% endif %}
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+
+                <div class="flex items-center gap-3 mt-4 text-sm">
+                    <a href="{% url 'account_address_edit' address.id %}" class="text-primary hover:underline">{% if LANGUAGE_CODE == 'tr' %}Duzenle{% else %}Edit{% endif %}</a>
+                    <form method="post" action="{% url 'account_address_delete' address.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="text-red-600 hover:underline">{% if LANGUAGE_CODE == 'tr' %}Sil{% else %}Delete{% endif %}</button>
+                    </form>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 p-8 text-center">
+            <p class="text-gray-500 dark:text-gray-300">{% if LANGUAGE_CODE == 'tr' %}Henuz kayitli adresiniz yok.{% else %}No saved addresses yet.{% endif %}</p>
+            <a href="{% url 'account_address_add' %}" class="mt-4 inline-flex items-center px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors">
+                {% if LANGUAGE_CODE == 'tr' %}Ilk Adresi Ekle{% else %}Add Your First Address{% endif %}
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

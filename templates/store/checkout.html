@@ -1,0 +1,257 @@
+﻿{% extends "account/base.html" %}
+{% load i18n currency %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head_title %}{% if LANGUAGE_CODE == 'tr' %}Odeme | Flexy Medical{% else %}Checkout | Flexy Medical{% endif %}{% endblock %}
+
+{% block content %}
+<main class="py-8 sm:py-12 bg-gray-50 dark:bg-black min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <form method="post" class="lg:grid lg:grid-cols-12 lg:gap-x-12 xl:gap-x-16">
+            {% csrf_token %}
+            {{ form.address_id }}
+
+            <div class="lg:col-span-7 space-y-6">
+                <div class="bg-white dark:bg-[#2c2219] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+                    <div class="p-6">
+                        <h2 class="text-lg font-semibold text-text-main dark:text-white flex items-center gap-3 mb-6">
+                            <span class="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white text-sm font-bold">1</span>
+                            {% if LANGUAGE_CODE == 'tr' %}Teslimat Bilgileri{% else %}Shipping Information{% endif %}
+                        </h2>
+
+                        {% if saved_addresses %}
+                        <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-6">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" for="savedAddressSelect">{% if LANGUAGE_CODE == 'tr' %}Kayitli Adres{% else %}Saved Address{% endif %}</label>
+                            <select id="savedAddressSelect" class="w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900">
+                                <option value="">{% if LANGUAGE_CODE == 'tr' %}Elle adres gir{% else %}Enter address manually{% endif %}</option>
+                                {% for address in saved_addresses %}
+                                    <option value="{{ address.id }}" {% if form.address_id.value|stringformat:"s" == address.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ address.full_name }} - {{ address.city }}, {{ address.district }}
+                                        {% if address.is_default_shipping %}({% if LANGUAGE_CODE == 'tr' %}Varsayilan{% else %}Default{% endif %}){% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <label class="mt-3 inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                                <input id="useSavedAddressInput" type="checkbox" name="{{ form.use_saved_address.name }}" value="1" {% if form.use_saved_address.value %}checked{% endif %}>
+                                <span>{% if LANGUAGE_CODE == 'tr' %}Kayitli adresi kullan{% else %}Use saved address{% endif %}</span>
+                            </label>
+                        </div>
+                        {% endif %}
+
+                        <div class="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
+                            <div class="col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="{{ form.email.id_for_label }}">{% if LANGUAGE_CODE == 'tr' %}E-posta{% else %}Email{% endif %}</label>
+                                <input type="email" name="{{ form.email.name }}" id="{{ form.email.id_for_label }}" value="{{ form.email.value|default:'' }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800" required>
+                                {% if form.email.errors %}<p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>{% endif %}
+                            </div>
+
+                            <div class="col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="{{ form.full_name.id_for_label }}">{% if LANGUAGE_CODE == 'tr' %}Ad Soyad{% else %}Full Name{% endif %}</label>
+                                <input type="text" name="{{ form.full_name.name }}" id="{{ form.full_name.id_for_label }}" value="{{ form.full_name.value|default:'' }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800" required>
+                                {% if form.full_name.errors %}<p class="mt-1 text-sm text-red-600">{{ form.full_name.errors.0 }}</p>{% endif %}
+                            </div>
+
+                            <div class="col-span-2 sm:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="{{ form.phone.id_for_label }}">{% if LANGUAGE_CODE == 'tr' %}Telefon{% else %}Phone{% endif %}</label>
+                                <input type="text" name="{{ form.phone.name }}" id="{{ form.phone.id_for_label }}" value="{{ form.phone.value|default:'' }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                                {% if form.phone.errors %}<p class="mt-1 text-sm text-red-600">{{ form.phone.errors.0 }}</p>{% endif %}
+                            </div>
+
+                            <div class="col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="{{ form.address_line1.id_for_label }}">{% if LANGUAGE_CODE == 'tr' %}Adres{% else %}Address{% endif %}</label>
+                                <input type="text" name="{{ form.address_line1.name }}" id="{{ form.address_line1.id_for_label }}" value="{{ form.address_line1.value|default:'' }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800" required>
+                            </div>
+
+                            <div class="col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="{{ form.address_line2.id_for_label }}">{% if LANGUAGE_CODE == 'tr' %}Adres (Opsiyonel){% else %}Address Line 2{% endif %}</label>
+                                <input type="text" name="{{ form.address_line2.name }}" id="{{ form.address_line2.id_for_label }}" value="{{ form.address_line2.value|default:'' }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">
+                            </div>
+
+                            <div class="col-span-2 sm:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="{{ form.city.id_for_label }}">{% if LANGUAGE_CODE == 'tr' %}Sehir{% else %}City{% endif %}</label>
+                                <input type="text" name="{{ form.city.name }}" id="{{ form.city.id_for_label }}" value="{{ form.city.value|default:'' }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800" required>
+                            </div>
+                            <div class="col-span-2 sm:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="{{ form.district.id_for_label }}">{% if LANGUAGE_CODE == 'tr' %}Ilce{% else %}District{% endif %}</label>
+                                <input type="text" name="{{ form.district.name }}" id="{{ form.district.id_for_label }}" value="{{ form.district.value|default:'' }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800" required>
+                                {% if form.district.errors %}<p class="mt-1 text-sm text-red-600">{{ form.district.errors.0 }}</p>{% endif %}
+                            </div>
+                            <div class="col-span-2 sm:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="{{ form.state.id_for_label }}">{% if LANGUAGE_CODE == 'tr' %}Il{% else %}State{% endif %}</label>
+                                <input type="text" name="{{ form.state.name }}" id="{{ form.state.id_for_label }}" value="{{ form.state.value|default:'' }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800" required>
+                            </div>
+                            <div class="col-span-2 sm:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="{{ form.postal_code.id_for_label }}">{% if LANGUAGE_CODE == 'tr' %}Posta Kodu{% else %}ZIP{% endif %}</label>
+                                <input type="text" name="{{ form.postal_code.name }}" id="{{ form.postal_code.id_for_label }}" value="{{ form.postal_code.value|default:'' }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800" required>
+                                {% if form.postal_code.errors %}<p class="mt-1 text-sm text-red-600">{{ form.postal_code.errors.0 }}</p>{% endif %}
+                            </div>
+                            <div class="col-span-2 sm:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="{{ form.country.id_for_label }}">{% if LANGUAGE_CODE == 'tr' %}Ulke{% else %}Country{% endif %}</label>
+                                <input type="text" name="{{ form.country.name }}" id="{{ form.country.id_for_label }}" value="{{ form.country.value|default:'Turkiye' }}" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800" required>
+                            </div>
+                            <div class="col-span-2">
+                                <label class="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                                    <input type="checkbox" name="{{ form.save_address.name }}" value="1" {% if form.save_address.value %}checked{% endif %}>
+                                    <span>{% if LANGUAGE_CODE == 'tr' %}Bu adresi adres defterime kaydet{% else %}Save this address to my address book{% endif %}</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-[#2c2219] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+                    <div class="p-6">
+                        <h2 class="text-lg font-semibold text-text-main dark:text-white flex items-center gap-3 mb-6">
+                            <span class="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white text-sm font-bold">2</span>
+                            {% if LANGUAGE_CODE == 'tr' %}Odeme Bilgileri{% else %}Payment Details{% endif %}
+                        </h2>
+
+                        <div class="space-y-3">
+                            {% for radio in form.payment_method %}
+                            <label class="relative flex cursor-pointer rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 has-[:checked]:ring-2 has-[:checked]:ring-primary has-[:checked]:border-transparent">
+                                {{ radio.tag }}
+                                <span class="ml-2 text-sm font-medium text-gray-900 dark:text-white">{{ radio.choice_label }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mt-6">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="{{ form.notes.id_for_label }}">{% if LANGUAGE_CODE == 'tr' %}Siparis Notu{% else %}Order Notes{% endif %}</label>
+                            <textarea name="{{ form.notes.name }}" id="{{ form.notes.id_for_label }}" rows="2" class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800">{{ form.notes.value|default:'' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-5 mt-8 lg:mt-0">
+                <div class="sticky top-24 space-y-6">
+                    <div class="bg-white dark:bg-[#2c2219] rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 overflow-hidden">
+                        <div class="p-6 bg-gray-50 dark:bg-[#342a21] border-b border-gray-100 dark:border-gray-800">
+                            <h2 class="text-lg font-semibold text-text-main dark:text-white">{% if LANGUAGE_CODE == 'tr' %}Siparis Ozeti{% else %}Order Summary{% endif %}</h2>
+                        </div>
+                        <div class="p-6 space-y-6">
+                            <ul class="divide-y divide-gray-100 dark:divide-gray-800">
+                                {% for item in items %}
+                                <li class="flex py-4 first:pt-0">
+                                    <div class="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50">
+                                        {% with checkout_image=item.variant.variant_image.first %}
+                                        {% if checkout_image %}
+                                            <img src="{{ checkout_image.image.url }}" alt="{{ item.product.name }}" class="h-full w-full object-cover object-center">
+                                        {% else %}
+                                            <div class="w-full h-full flex items-center justify-center text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Gorsel Yok{% else %}No Img{% endif %}</div>
+                                        {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    <div class="ml-4 flex flex-1 flex-col justify-between">
+                                        <div>
+                                            <div class="flex justify-between text-base font-medium text-text-main dark:text-white">
+                                                <h3>{{ item.product.name }}</h3>
+                                                <p class="ml-4">{{ item.subtotal|try_currency }}</p>
+                                            </div>
+                                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{% if LANGUAGE_CODE == 'tr' %}Varyant:{% else %}Var:{% endif %} {{ item.variant.name|default_if_none:"Default"|default:"Default" }}</p>
+                                        </div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">{% if LANGUAGE_CODE == 'tr' %}Adet{% else %}Qty{% endif %} {{ item.quantity }}</div>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+
+                            <div class="border-t border-gray-100 dark:border-gray-800 pt-4 space-y-2">
+                                <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400"><p>{% if LANGUAGE_CODE == 'tr' %}Ara Toplam{% else %}Subtotal{% endif %}</p><p>{{ subtotal|try_currency }}</p></div>
+                                {% if discount > 0 %}
+                                    <div class="flex justify-between text-sm text-green-700"><p>{% if LANGUAGE_CODE == 'tr' %}Kupon Indirimi{% else %}Coupon Discount{% endif %}</p><p>-{{ discount|try_currency }}</p></div>
+                                {% endif %}
+                                {% if gift_card_applied > 0 %}
+                                    <div class="flex justify-between text-sm text-green-700"><p>{% if LANGUAGE_CODE == 'tr' %}Hediye Karti{% else %}Gift Card{% endif %}</p><p>-{{ gift_card_applied|try_currency }}</p></div>
+                                {% endif %}
+                                <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400"><p>{% if LANGUAGE_CODE == 'tr' %}Vergi{% else %}Tax{% endif %}</p><p>{{ tax|try_currency }}</p></div>
+                                <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400"><p>{% if LANGUAGE_CODE == 'tr' %}Kargo{% else %}Shipping{% endif %}</p><p>{{ shipping|try_currency }}</p></div>
+                                <div class="border-t border-gray-100 dark:border-gray-800 pt-4 flex justify-between items-center"><p class="text-base font-bold text-text-main dark:text-white">{% if LANGUAGE_CODE == 'tr' %}Toplam{% else %}Total{% endif %}</p><p class="text-xl font-bold text-text-main dark:text-white">{{ total|try_currency }}</p></div>
+                            </div>
+
+                            <button type="submit" class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2">
+                                <span class="material-icons text-sm">lock</span>
+                                {% if LANGUAGE_CODE == 'tr' %}Siparisi Tamamla{% else %}Place Order{% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</main>
+{% endblock content %}
+
+{% block extra_body %}
+{{ saved_addresses_json|json_script:"saved-addresses-data" }}
+<script>
+    (function () {
+        const select = document.getElementById("savedAddressSelect");
+        const useSavedInput = document.getElementById("useSavedAddressInput");
+        const addressIdInput = document.getElementById("id_address_id");
+        const dataEl = document.getElementById("saved-addresses-data");
+
+        if (!select || !useSavedInput || !addressIdInput || !dataEl) return;
+
+        let addresses = [];
+        try {
+            addresses = JSON.parse(dataEl.textContent || "[]");
+        } catch (error) {
+            addresses = [];
+        }
+
+        const fields = {
+            full_name: document.getElementById("{{ form.full_name.id_for_label }}"),
+            phone: document.getElementById("{{ form.phone.id_for_label }}"),
+            address_line1: document.getElementById("{{ form.address_line1.id_for_label }}"),
+            address_line2: document.getElementById("{{ form.address_line2.id_for_label }}"),
+            city: document.getElementById("{{ form.city.id_for_label }}"),
+            district: document.getElementById("{{ form.district.id_for_label }}"),
+            state: document.getElementById("{{ form.state.id_for_label }}"),
+            postal_code: document.getElementById("{{ form.postal_code.id_for_label }}"),
+            country: document.getElementById("{{ form.country.id_for_label }}"),
+        };
+
+        function applyAddress(address) {
+            if (!address) return;
+            if (fields.full_name) fields.full_name.value = address.full_name || "";
+            if (fields.phone) fields.phone.value = address.phone || "";
+            if (fields.address_line1) fields.address_line1.value = address.address_line1 || "";
+            if (fields.address_line2) fields.address_line2.value = address.address_line2 || "";
+            if (fields.city) fields.city.value = address.city || "";
+            if (fields.district) fields.district.value = address.district || "";
+            if (fields.state) fields.state.value = address.district || "";
+            if (fields.postal_code) fields.postal_code.value = address.postal_code || "";
+            if (fields.country) fields.country.value = address.country || "Turkiye";
+        }
+
+        function syncSavedState() {
+            const selectedId = select.value;
+            if (!selectedId) {
+                useSavedInput.checked = false;
+                addressIdInput.value = "";
+                return;
+            }
+
+            useSavedInput.checked = true;
+            addressIdInput.value = selectedId;
+            const selectedAddress = addresses.find((item) => item.id === selectedId);
+            applyAddress(selectedAddress);
+        }
+
+        select.addEventListener("change", syncSavedState);
+        useSavedInput.addEventListener("change", function () {
+            if (!useSavedInput.checked) {
+                addressIdInput.value = "";
+                select.value = "";
+                return;
+            }
+            syncSavedState();
+        });
+
+        if (select.value) {
+            syncSavedState();
+        }
+    })();
+</script>
+{% endblock %}

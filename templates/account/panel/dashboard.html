@@ -1,0 +1,84 @@
+{% extends "account/panel/base.html" %}
+{% load i18n currency %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head_title %}{% if LANGUAGE_CODE == 'tr' %}Hesap Paneli | Flexy Medical{% else %}Account Dashboard | Flexy Medical{% endif %}{% endblock %}
+
+{% block panel_content %}
+<div class="space-y-6">
+    <article class="rounded-xl bg-white dark:bg-[#2c2219] border border-gray-100 dark:border-gray-800 p-6">
+        <h2 class="text-xl font-semibold text-text-main dark:text-white mb-4">{% if LANGUAGE_CODE == 'tr' %}Hesap Bilgileri{% else %}Account Details{% endif %}</h2>
+        <form method="post" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {% csrf_token %}
+            <div>
+                <label for="{{ profile_form.username.id_for_label }}" class="text-sm text-gray-500 dark:text-gray-300">{% if LANGUAGE_CODE == 'tr' %}Kullanici Adi{% else %}Username{% endif %}</label>
+                {{ profile_form.username }}
+            </div>
+            <div>
+                <label for="{{ profile_form.email.id_for_label }}" class="text-sm text-gray-500 dark:text-gray-300">{% if LANGUAGE_CODE == 'tr' %}E-posta{% else %}Email{% endif %}</label>
+                {{ profile_form.email }}
+            </div>
+            <div>
+                <label for="{{ profile_form.first_name.id_for_label }}" class="text-sm text-gray-500 dark:text-gray-300">{% if LANGUAGE_CODE == 'tr' %}Ad{% else %}First Name{% endif %}</label>
+                {{ profile_form.first_name }}
+            </div>
+            <div>
+                <label for="{{ profile_form.last_name.id_for_label }}" class="text-sm text-gray-500 dark:text-gray-300">{% if LANGUAGE_CODE == 'tr' %}Soyad{% else %}Last Name{% endif %}</label>
+                {{ profile_form.last_name }}
+            </div>
+            <div class="sm:col-span-2">
+                <button type="submit" class="inline-flex items-center px-4 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors">
+                    {% if LANGUAGE_CODE == 'tr' %}Bilgileri Kaydet{% else %}Save Profile{% endif %}
+                </button>
+            </div>
+        </form>
+    </article>
+
+    <article class="rounded-xl bg-white dark:bg-[#2c2219] border border-gray-100 dark:border-gray-800 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-semibold text-text-main dark:text-white">{% if LANGUAGE_CODE == 'tr' %}Son Siparisler{% else %}Recent Orders{% endif %}</h2>
+            <a href="{% url 'account_orders' %}" class="text-sm font-semibold text-primary hover:underline">
+                {% if LANGUAGE_CODE == 'tr' %}Tumunu Gor{% else %}View All{% endif %}
+            </a>
+        </div>
+        <p class="text-sm text-gray-500 dark:text-gray-300 mb-4">
+            {% if LANGUAGE_CODE == 'tr' %}Toplam Harcama:{% else %}Total Spend:{% endif %}
+            <strong class="text-text-main dark:text-white">{{ order_total|try_currency }}</strong>
+        </p>
+
+        {% if orders %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left border-b border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400">
+                            <th class="py-2">{% if LANGUAGE_CODE == 'tr' %}Siparis No{% else %}Order ID{% endif %}</th>
+                            <th class="py-2">{% if LANGUAGE_CODE == 'tr' %}Durum{% else %}Status{% endif %}</th>
+                            <th class="py-2">{% if LANGUAGE_CODE == 'tr' %}Tarih{% else %}Date{% endif %}</th>
+                            <th class="py-2">{% if LANGUAGE_CODE == 'tr' %}Toplam{% else %}Total{% endif %}</th>
+                            <th class="py-2 text-right">{% if LANGUAGE_CODE == 'tr' %}Detay{% else %}Detail{% endif %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr class="border-b border-gray-100 dark:border-gray-800">
+                            <td class="py-2 font-medium">#{{ order.id|stringformat:"s"|slice:":8"|upper }}</td>
+                            <td class="py-2">{{ order.get_status_display }}</td>
+                            <td class="py-2">{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                            <td class="py-2">{{ order.total|try_currency }}</td>
+                            <td class="py-2 text-right"><a href="{% url 'order_detail' order.id %}" class="text-primary hover:underline">{% if LANGUAGE_CODE == 'tr' %}Detay{% else %}Details{% endif %}</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 p-6 text-center">
+                <p class="text-gray-500 dark:text-gray-300">{% if LANGUAGE_CODE == 'tr' %}Henuz siparisiniz yok.{% else %}No orders yet.{% endif %}</p>
+                <a href="{% url 'products_list' %}" class="mt-3 inline-flex items-center px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors">
+                    {% if LANGUAGE_CODE == 'tr' %}Alisverise Basla{% else %}Start Shopping{% endif %}
+                </a>
+            </div>
+        {% endif %}
+    </article>
+</div>
+{% endblock %}

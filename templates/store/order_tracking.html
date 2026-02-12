@@ -1,0 +1,82 @@
+﻿{% extends "account/base.html" %}
+{% load i18n currency %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head_title %}{% if LANGUAGE_CODE == 'tr' %}Siparis Takibi | Flexy Medical{% else %}Order Tracking | Flexy Medical{% endif %}{% endblock %}
+
+{% block content %}
+<main class="py-12 bg-gray-50 dark:bg-black min-h-screen">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-8">
+            <a href="{% url 'account_orders' %}" class="flex items-center text-sm text-gray-500 hover:text-primary transition-colors mb-4"><span class="material-icons text-base mr-1">arrow_back</span>{% if LANGUAGE_CODE == 'tr' %}Siparislerime Don{% else %}Back to My Orders{% endif %}</a>
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div>
+                    <h1 class="text-3xl font-bold text-text-main dark:text-white">{% if LANGUAGE_CODE == 'tr' %}Siparis Takibi{% else %}Order Tracking{% endif %}</h1>
+                    <p class="mt-1 text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Siparis No{% else %}Order ID{% endif %}: <span class="font-mono font-medium text-text-main dark:text-white">#{{ order.id|stringformat:"s"|slice:":8"|upper }}</span></p>
+                </div>
+                <div class="flex gap-3">
+                    {% if invoice %}
+                    <a href="{% url 'invoice_download' order.id %}" class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">{% if LANGUAGE_CODE == 'tr' %}Fatura{% else %}Invoice{% endif %}</a>
+                    {% endif %}
+                    <a href="{% url 'order_detail' order.id %}" class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors shadow-sm">{% if LANGUAGE_CODE == 'tr' %}Detay{% else %}Details{% endif %}</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-[#2c2219] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 md:p-10 mb-8">
+            <div class="mb-8 text-center">
+                <p class="text-sm text-gray-500 uppercase tracking-widest mb-1">{% if LANGUAGE_CODE == 'tr' %}Durum{% else %}Status{% endif %}</p>
+                <h2 class="text-2xl md:text-3xl font-bold text-text-main dark:text-white">{{ order.get_status_display }}</h2>
+                {% if order.tracking_number %}
+                <p class="text-primary font-medium mt-2">{% if LANGUAGE_CODE == 'tr' %}Takip No{% else %}Tracking No{% endif %}: {{ order.tracking_number }}</p>
+                {% endif %}
+            </div>
+
+            {% with status=order.status %}
+            <div class="relative">
+                <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-100 dark:bg-gray-700 rounded-full z-0"></div>
+                <div class="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-primary rounded-full z-0"
+                     style="width:{% if status == 'pending' %}12{% elif status == 'paid' %}26{% elif status == 'processing' %}50{% elif status == 'shipped' %}76{% elif status == 'delivered' %}100{% elif status == 'cancelled' %}100{% elif status == 'refunded' %}100{% else %}12{% endif %}%;"></div>
+
+                <div class="relative z-10 flex justify-between">
+                    <div class="flex flex-col items-center"><div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center"><span class="material-icons text-base">receipt_long</span></div><p class="mt-2 text-xs text-center">{% if LANGUAGE_CODE == 'tr' %}Siparis{% else %}Placed{% endif %}</p></div>
+                    <div class="flex flex-col items-center"><div class="w-10 h-10 rounded-full {% if status == 'paid' or status == 'processing' or status == 'shipped' or status == 'delivered' %}bg-primary text-white{% else %}bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-400{% endif %} flex items-center justify-center"><span class="material-icons text-base">payments</span></div><p class="mt-2 text-xs text-center">{% if LANGUAGE_CODE == 'tr' %}Odeme{% else %}Paid{% endif %}</p></div>
+                    <div class="flex flex-col items-center"><div class="w-10 h-10 rounded-full {% if status == 'processing' or status == 'shipped' or status == 'delivered' %}bg-primary text-white{% else %}bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-400{% endif %} flex items-center justify-center"><span class="material-icons text-base">inventory_2</span></div><p class="mt-2 text-xs text-center">{% if LANGUAGE_CODE == 'tr' %}Hazirlaniyor{% else %}Processing{% endif %}</p></div>
+                    <div class="flex flex-col items-center"><div class="w-10 h-10 rounded-full {% if status == 'shipped' or status == 'delivered' %}bg-primary text-white{% else %}bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-400{% endif %} flex items-center justify-center"><span class="material-icons text-base">local_shipping</span></div><p class="mt-2 text-xs text-center">{% if LANGUAGE_CODE == 'tr' %}Kargoda{% else %}Shipped{% endif %}</p></div>
+                    <div class="flex flex-col items-center"><div class="w-10 h-10 rounded-full {% if status == 'delivered' %}bg-primary text-white{% else %}bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-400{% endif %} flex items-center justify-center"><span class="material-icons text-base">home</span></div><p class="mt-2 text-xs text-center">{% if LANGUAGE_CODE == 'tr' %}Teslim{% else %}Delivered{% endif %}</p></div>
+                </div>
+            </div>
+            {% endwith %}
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="md:col-span-2 bg-white dark:bg-[#2c2219] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+                <h3 class="font-bold text-lg text-text-main dark:text-white mb-6">{% if LANGUAGE_CODE == 'tr' %}Durum Gecmisi{% else %}Status Timeline{% endif %}</h3>
+                <div class="space-y-6 border-l-2 border-gray-100 dark:border-gray-800 ml-3 pl-6 relative">
+                    {% for event in order.status_events.all %}
+                    <div class="relative">
+                        <span class="absolute -left-[31px] top-1 h-4 w-4 rounded-full border-2 border-white dark:border-gray-900 bg-primary"></span>
+                        <p class="text-sm font-medium text-text-main dark:text-white">{{ event.get_status_display }}</p>
+                        {% if event.note %}<p class="text-xs text-gray-500">{{ event.note }}</p>{% endif %}
+                        <p class="text-xs text-gray-400 mt-1">{{ event.created_at|date:"Y-m-d H:i" }}</p>
+                    </div>
+                    {% empty %}
+                    <p class="text-sm text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Henuz durum gecmisi yok.{% else %}No status history yet.{% endif %}</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-[#2c2219] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+                <h3 class="font-bold text-lg text-text-main dark:text-white mb-6">{% if LANGUAGE_CODE == 'tr' %}Siparis Ozeti{% else %}Order Summary{% endif %}</h3>
+                <ul class="space-y-3 text-sm">
+                    <li class="flex justify-between"><span class="text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Ara Toplam{% else %}Subtotal{% endif %}</span><span>{{ order.subtotal|try_currency }}</span></li>
+                    <li class="flex justify-between"><span class="text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Indirim{% else %}Discount{% endif %}</span><span>-{{ order.discount|try_currency }}</span></li>
+                    <li class="flex justify-between"><span class="text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Vergi{% else %}Tax{% endif %}</span><span>{{ order.tax|try_currency }}</span></li>
+                    <li class="flex justify-between"><span class="text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Kargo{% else %}Shipping{% endif %}</span><span>{{ order.shipping|try_currency }}</span></li>
+                    <li class="border-t border-gray-200 dark:border-gray-700 pt-3 flex justify-between font-semibold"><span>{% if LANGUAGE_CODE == 'tr' %}Toplam{% else %}Total{% endif %}</span><span>{{ order.total|try_currency }}</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock content %}

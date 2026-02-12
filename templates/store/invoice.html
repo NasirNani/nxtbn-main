@@ -1,0 +1,65 @@
+{% load i18n currency %}
+{% get_current_language as LANGUAGE_CODE %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ invoice.number }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 24px; color: #1f2937; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .box { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: left; }
+        th:last-child, td:last-child { text-align: right; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ invoice.number }}</h1>
+        <div>
+            <div>{% if LANGUAGE_CODE == 'tr' %}Tarih{% else %}Date{% endif %}: {{ invoice.issued_at|date:"Y-m-d H:i" }}</div>
+            <div>{% if LANGUAGE_CODE == 'tr' %}Durum{% else %}Status{% endif %}: {{ invoice.get_status_display }}</div>
+        </div>
+    </div>
+
+    <div class="box">
+        <h3>{% if LANGUAGE_CODE == 'tr' %}Musteri{% else %}Customer{% endif %}</h3>
+        <p>{{ order.full_name }} - {{ order.email }}</p>
+        <p>{{ order.address_line1 }} {{ order.address_line2 }}</p>
+        <p>{{ order.city }} / {{ order.state }} {{ order.postal_code }} - {{ order.country }}</p>
+    </div>
+
+    <div class="box">
+        <table>
+            <thead>
+                <tr>
+                    <th>{% if LANGUAGE_CODE == 'tr' %}Urun{% else %}Product{% endif %}</th>
+                    <th>{% if LANGUAGE_CODE == 'tr' %}Adet{% else %}Qty{% endif %}</th>
+                    <th>{% if LANGUAGE_CODE == 'tr' %}Birim{% else %}Unit{% endif %}</th>
+                    <th>{% if LANGUAGE_CODE == 'tr' %}Toplam{% else %}Total{% endif %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td>{{ item.product_name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.unit_price|try_currency }}</td>
+                    <td>{{ item.line_total|try_currency }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="box">
+        <p>{% if LANGUAGE_CODE == 'tr' %}Ara Toplam{% else %}Subtotal{% endif %}: {{ order.subtotal|try_currency }}</p>
+        <p>{% if LANGUAGE_CODE == 'tr' %}Indirim{% else %}Discount{% endif %}: -{{ order.discount|try_currency }}</p>
+        <p>{% if LANGUAGE_CODE == 'tr' %}Vergi{% else %}Tax{% endif %}: {{ order.tax|try_currency }}</p>
+        <p>{% if LANGUAGE_CODE == 'tr' %}Kargo{% else %}Shipping{% endif %}: {{ order.shipping|try_currency }}</p>
+        <p><strong>{% if LANGUAGE_CODE == 'tr' %}Genel Toplam{% else %}Grand Total{% endif %}: {{ order.total|try_currency }}</strong></p>
+    </div>
+</body>
+</html>

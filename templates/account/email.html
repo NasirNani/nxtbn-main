@@ -1,0 +1,115 @@
+{% extends "account/base.html" %}
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head_title %}
+{% if LANGUAGE_CODE == 'tr' %}E-posta Adresleri | Flexy Medical{% else %}Email Addresses | Flexy Medical{% endif %}
+{% endblock head_title %}
+
+{% block content %}
+<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-screen">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-text-main dark:text-white">
+            {% if LANGUAGE_CODE == 'tr' %}E-posta Adresleri{% else %}Email Addresses{% endif %}
+        </h1>
+        <p class="mt-2 text-gray-500 dark:text-gray-300">
+            {% if LANGUAGE_CODE == 'tr' %}Hesabinizdaki e-posta adreslerini yonetin.{% else %}Manage the email addresses on your account.{% endif %}
+        </p>
+    </div>
+
+    <section class="rounded-xl bg-white dark:bg-[#2c2219] border border-gray-100 dark:border-gray-800 p-6 mb-6">
+        <h2 class="text-xl font-semibold text-text-main dark:text-white mb-4">
+            {% if LANGUAGE_CODE == 'tr' %}Kayitli E-postalar{% else %}Registered Emails{% endif %}
+        </h2>
+
+        {% if emailaddresses %}
+            <form method="post" action="{% url 'account_email' %}" class="space-y-4">
+                {% csrf_token %}
+                <div class="space-y-3">
+                    {% for radio in emailaddress_radios %}
+                        {% with emailaddress=radio.emailaddress %}
+                            <label class="flex items-center justify-between gap-3 rounded-lg border border-gray-200 dark:border-gray-700 p-3 cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <input type="radio" name="email" id="{{ radio.id }}" value="{{ emailaddress.email }}" {% if radio.checked %}checked{% endif %} class="text-primary focus:ring-primary">
+                                    <span class="font-medium text-text-main dark:text-white">{{ emailaddress.email }}</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-xs">
+                                    {% if emailaddress.verified %}
+                                        <span class="px-2 py-1 rounded-full bg-green-100 text-green-700">{% if LANGUAGE_CODE == 'tr' %}Dogrulandi{% else %}Verified{% endif %}</span>
+                                    {% else %}
+                                        <span class="px-2 py-1 rounded-full bg-amber-100 text-amber-700">{% if LANGUAGE_CODE == 'tr' %}Dogrulanmadi{% else %}Unverified{% endif %}</span>
+                                    {% endif %}
+                                    {% if emailaddress.primary %}
+                                        <span class="px-2 py-1 rounded-full bg-blue-100 text-blue-700">{% if LANGUAGE_CODE == 'tr' %}Birincil{% else %}Primary{% endif %}</span>
+                                    {% endif %}
+                                </div>
+                            </label>
+                        {% endwith %}
+                    {% endfor %}
+                </div>
+
+                <div class="flex flex-wrap gap-2 pt-2">
+                    <button type="submit" name="action_primary" class="inline-flex items-center px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors">
+                        {% if LANGUAGE_CODE == 'tr' %}Birincil Yap{% else %}Make Primary{% endif %}
+                    </button>
+                    <button type="submit" name="action_send" class="inline-flex items-center px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-text-main dark:text-white font-semibold hover:text-primary transition-colors">
+                        {% if LANGUAGE_CODE == 'tr' %}Dogrulama Tekrar Gonder{% else %}Re-send Verification{% endif %}
+                    </button>
+                    <button type="submit" name="action_remove" class="inline-flex items-center px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors">
+                        {% if LANGUAGE_CODE == 'tr' %}Kaldir{% else %}Remove{% endif %}
+                    </button>
+                </div>
+            </form>
+        {% else %}
+            <div class="rounded-lg border border-amber-200 bg-amber-50 text-amber-800 px-4 py-3 text-sm">
+                {% if LANGUAGE_CODE == 'tr' %}Hesabinizda henuz bir e-posta adresi yok. Lutfen asagidan bir e-posta ekleyin.{% else %}You do not have any email address set up yet. Please add one below.{% endif %}
+            </div>
+        {% endif %}
+    </section>
+
+    {% if can_add_email %}
+        <section class="rounded-xl bg-white dark:bg-[#2c2219] border border-gray-100 dark:border-gray-800 p-6">
+            <h2 class="text-xl font-semibold text-text-main dark:text-white mb-4">
+                {% if LANGUAGE_CODE == 'tr' %}E-posta Adresi Ekle{% else %}Add Email Address{% endif %}
+            </h2>
+            <form method="post" action="{% url 'account_email' %}" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-text-main dark:text-white mb-1">
+                        {% if LANGUAGE_CODE == 'tr' %}E-posta{% else %}Email{% endif %}
+                    </label>
+                    <input
+                        type="email"
+                        name="{{ form.email.name }}"
+                        id="{{ form.email.id_for_label }}"
+                        value="{{ form.email.value|default:'' }}"
+                        placeholder="{% if LANGUAGE_CODE == 'tr' %}E-posta adresi{% else %}Email address{% endif %}"
+                        class="w-full sm:w-[420px] rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800"
+                        required
+                    >
+                    {% if form.email.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <button type="submit" name="action_add" class="inline-flex items-center px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors">
+                    {% if LANGUAGE_CODE == 'tr' %}E-posta Ekle{% else %}Add Email{% endif %}
+                </button>
+            </form>
+        </section>
+    {% endif %}
+</main>
+{% endblock content %}
+
+{% block extra_body %}
+{{ block.super }}
+<script>
+    (function () {
+        const message = "{% if LANGUAGE_CODE == 'tr' %}Secili e-posta adresini kaldirmak istediginize emin misiniz?{% else %}Do you really want to remove the selected email address?{% endif %}";
+        const removeButton = document.querySelector('button[name="action_remove"]');
+        if (!removeButton) return;
+        removeButton.addEventListener("click", function (event) {
+            if (!confirm(message)) event.preventDefault();
+        });
+    })();
+</script>
+{% endblock extra_body %}

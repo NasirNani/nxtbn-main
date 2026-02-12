@@ -1,0 +1,224 @@
+﻿{% extends "account/base.html" %}
+{% load i18n currency %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head_title %}{% if LANGUAGE_CODE == 'tr' %}Urun Katalogu | Flexy Medical{% else %}Product Catalog | Flexy Medical{% endif %}{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-[#1a120b] border-b border-gray-100 dark:border-white/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 class="text-3xl font-bold text-text-main dark:text-white">{% if LANGUAGE_CODE == 'tr' %}Tum Urunler{% else %}Shop All Products{% endif %}</h1>
+        <p class="mt-2 text-gray-500 dark:text-gray-400">{% if LANGUAGE_CODE == 'tr' %}Kategori, fiyat ve arama ile urunleri filtreleyin.{% else %}Filter products by category, price, and keyword.{% endif %}</p>
+
+        <form method="get" class="mt-5 flex flex-col sm:flex-row gap-3">
+            <input
+                type="search"
+                name="q"
+                value="{{ selected_query }}"
+                placeholder="{% if LANGUAGE_CODE == 'tr' %}Urun ara...{% else %}Search products...{% endif %}"
+                class="flex-1 rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900"
+            >
+            {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+            {% for price in selected_prices %}<input type="hidden" name="price" value="{{ price }}">{% endfor %}
+            <input type="hidden" name="sort" value="{{ selected_sort }}">
+            <button type="submit" class="inline-flex items-center px-5 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors">
+                {% if LANGUAGE_CODE == 'tr' %}Ara{% else %}Search{% endif %}
+            </button>
+        </form>
+
+        <nav class="flex mt-4 text-sm text-gray-500 dark:text-gray-400">
+            <ol class="flex items-center space-x-2">
+                <li><a href="{% url 'home' %}" class="hover:text-primary transition-colors">{% if LANGUAGE_CODE == 'tr' %}Ana Sayfa{% else %}Home{% endif %}</a></li>
+                <li><span class="material-icons text-base">chevron_right</span></li>
+                <li class="font-medium text-text-main dark:text-white">{% if LANGUAGE_CODE == 'tr' %}Tum Urunler{% else %}Shop All{% endif %}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+    <div class="flex flex-col lg:flex-row gap-8 lg:gap-12">
+        <aside class="w-full lg:w-64 flex-shrink-0">
+            <form id="catalogFilterForm" method="get" class="space-y-8">
+                <input type="hidden" name="q" value="{{ selected_query }}">
+
+                <div>
+                    <h3 class="font-bold text-text-main dark:text-white mb-4">{% if LANGUAGE_CODE == 'tr' %}Kategoriler{% else %}Categories{% endif %}</h3>
+                    <ul class="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+                        <li>
+                            <label class="flex items-center justify-between cursor-pointer hover:text-primary transition-colors">
+                                <span>{% if LANGUAGE_CODE == 'tr' %}Tum Kategoriler{% else %}All Categories{% endif %}</span>
+                                <input type="radio" name="category" value="" onchange="this.form.submit()" {% if not selected_category %}checked{% endif %}>
+                            </label>
+                        </li>
+                        {% for cat in categories %}
+                            <li>
+                                <label class="flex items-center justify-between cursor-pointer hover:text-primary transition-colors">
+                                    <span class="{% if selected_category == cat.category %}font-medium text-primary{% endif %}">{{ cat.category }}</span>
+                                    <span class="{% if selected_category == cat.category %}text-primary{% else %}text-gray-400{% endif %}">({{ cat.total }})</span>
+                                    <input type="radio" name="category" value="{{ cat.category }}" class="sr-only" onchange="this.form.submit()" {% if selected_category == cat.category %}checked{% endif %}>
+                                </label>
+                            </li>
+                        {% empty %}
+                            <li class="text-xs text-gray-500 dark:text-gray-400">{% if LANGUAGE_CODE == 'tr' %}Kategori bulunamadi{% else %}No categories{% endif %}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-text-main dark:text-white mb-4">{% if LANGUAGE_CODE == 'tr' %}Fiyat{% else %}Price{% endif %}</h3>
+                    <div class="space-y-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" name="price" value="under_25" {% if "under_25" in selected_prices %}checked{% endif %} class="form-checkbox rounded border-gray-300 text-primary focus:ring-primary">
+                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">{% if LANGUAGE_CODE == 'tr' %}&#8378;25 alti{% else %}Under &#8378;25{% endif %}</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="price" value="25_50" {% if "25_50" in selected_prices %}checked{% endif %} class="form-checkbox rounded border-gray-300 text-primary focus:ring-primary">
+                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">&#8378;25 - &#8378;50</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="price" value="50_100" {% if "50_100" in selected_prices %}checked{% endif %} class="form-checkbox rounded border-gray-300 text-primary focus:ring-primary">
+                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">&#8378;50 - &#8378;100</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="price" value="100_plus" {% if "100_plus" in selected_prices %}checked{% endif %} class="form-checkbox rounded border-gray-300 text-primary focus:ring-primary">
+                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">&#8378;100+</span>
+                        </label>
+                    </div>
+                    <div class="mt-4 flex items-center gap-2">
+                        <button type="submit" class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary text-white hover:bg-primary-dark transition-colors">
+                            {% if LANGUAGE_CODE == 'tr' %}Uygula{% else %}Apply{% endif %}
+                        </button>
+                        <a href="{% url 'products_list' %}" class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-300 dark:border-gray-700 hover:text-primary transition-colors">
+                            {% if LANGUAGE_CODE == 'tr' %}Temizle{% else %}Clear{% endif %}
+                        </a>
+                    </div>
+                </div>
+
+                <input type="hidden" name="sort" value="{{ selected_sort }}">
+            </form>
+        </aside>
+
+        <div class="flex-1">
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-3">
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    {% if LANGUAGE_CODE == 'tr' %}Toplam{% else %}Showing{% endif %}
+                    <span class="font-medium text-gray-900 dark:text-white">{{ page_obj.paginator.count }}</span>
+                    {% if LANGUAGE_CODE == 'tr' %}urun{% else %}results{% endif %}
+                </p>
+                <div class="flex items-center gap-2">
+                    <label for="sort" class="text-sm text-gray-500 dark:text-gray-400">{% if LANGUAGE_CODE == 'tr' %}Sirala:{% else %}Sort by:{% endif %}</label>
+                    <select id="sort" name="sort" form="catalogFilterForm" onchange="document.getElementById('catalogFilterForm').submit();" class="bg-transparent border-gray-300 dark:border-gray-700 text-sm rounded-lg focus:ring-primary focus:border-primary text-gray-700 dark:text-gray-300">
+                        <option value="popular" {% if selected_sort == "popular" %}selected{% endif %}>{% if LANGUAGE_CODE == 'tr' %}En Populer{% else %}Most Popular{% endif %}</option>
+                        <option value="newest" {% if selected_sort == "newest" %}selected{% endif %}>{% if LANGUAGE_CODE == 'tr' %}En Yeni{% else %}Newest{% endif %}</option>
+                        <option value="price_asc" {% if selected_sort == "price_asc" %}selected{% endif %}>{% if LANGUAGE_CODE == 'tr' %}Fiyat: Dusukten Yuksege{% else %}Price: Low to High{% endif %}</option>
+                        <option value="price_desc" {% if selected_sort == "price_desc" %}selected{% endif %}>{% if LANGUAGE_CODE == 'tr' %}Fiyat: Yuksekten Dusuge{% else %}Price: High to Low{% endif %}</option>
+                        <option value="rating_desc" {% if selected_sort == "rating_desc" %}selected{% endif %}>{% if LANGUAGE_CODE == 'tr' %}Puan: Yuksekten Dusuge{% else %}Rating: High to Low{% endif %}</option>
+                    </select>
+                </div>
+            </div>
+
+            {% if products %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for product in products %}
+                <article class="bg-white dark:bg-[#1a120b] rounded-xl border border-gray-100 dark:border-white/10 overflow-hidden hover:shadow-lg transition-all group">
+                    <div class="relative aspect-square bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                        {% with variant=product.default_variant|default:product.variants.first %}
+                            <a href="{% url 'product_detail' product.id %}">
+                                {% if variant %}
+                                    {% with card_image=variant.variant_image.first %}
+                                        {% if card_image %}
+                                            <img src="{{ card_image.image.url }}" alt="{{ card_image.image_alt_text|default:product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                        {% else %}
+                                            <div class="w-full h-full flex items-center justify-center text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Gorsel Yok{% else %}No Image{% endif %}</div>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% else %}
+                                    <div class="w-full h-full flex items-center justify-center text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Gorsel Yok{% else %}No Image{% endif %}</div>
+                                {% endif %}
+                            </a>
+
+                            {% if product.available_variants > 0 and variant %}
+                            <form method="post" action="{% url 'cart_add' variant.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="quantity" value="1">
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="absolute bottom-3 right-3 bg-white dark:bg-gray-900 text-primary p-2 rounded-full shadow-md hover:bg-primary hover:text-white transition-colors transform translate-y-12 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 duration-300">
+                                    <span class="material-icons">add_shopping_cart</span>
+                                </button>
+                            </form>
+                            {% endif %}
+                        {% endwith %}
+
+                        <span class="absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-semibold {% if product.available_variants > 0 %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                            {% if product.available_variants > 0 %}{% if LANGUAGE_CODE == 'tr' %}Stokta{% else %}In Stock{% endif %}{% else %}{% if LANGUAGE_CODE == 'tr' %}Tukendi{% else %}Out of Stock{% endif %}{% endif %}
+                        </span>
+                    </div>
+
+                    <div class="p-4">
+                        <div class="mb-1 text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">{{ product.category|default:"Medical" }}</div>
+                        <h3 class="font-bold text-lg text-text-main dark:text-white mb-1">
+                            <a href="{% url 'product_detail' product.id %}" class="hover:text-primary transition-colors">{{ product.name }}</a>
+                        </h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">{{ product.summary }}</p>
+
+                        <div class="flex items-center justify-between">
+                            {% if product.display_price %}
+                                <span class="text-xl font-bold text-text-main dark:text-white">{{ product.display_price|try_currency }}</span>
+                            {% else %}
+                                <span class="text-sm text-gray-400">{% if LANGUAGE_CODE == 'tr' %}Mevcut degil{% else %}Unavailable{% endif %}</span>
+                            {% endif %}
+                            <span class="text-xs text-gray-500 dark:text-gray-400">{{ product.average_rating|floatformat:1 }} ({{ product.reviews_total }})</span>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-20 bg-gray-50 dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
+                <span class="material-icons text-6xl text-gray-300 mb-4">inventory_2</span>
+                <h2 class="text-xl font-medium text-gray-900 dark:text-white mb-2">{% if LANGUAGE_CODE == 'tr' %}Urun bulunamadi{% else %}No products found{% endif %}</h2>
+                <p class="text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Filtreleri degistirip tekrar deneyin.{% else %}Try adjusting your filters and search terms.{% endif %}</p>
+                <a href="{% url 'products_list' %}" class="mt-4 inline-flex items-center px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors">
+                    {% if LANGUAGE_CODE == 'tr' %}Tumunu Sifirla{% else %}Reset All{% endif %}
+                </a>
+            </div>
+            {% endif %}
+
+            {% if page_obj.paginator.num_pages > 1 %}
+            <div class="mt-12 flex justify-center">
+                <nav class="flex items-center gap-2" aria-label="Pagination">
+                    {% if page_obj.has_previous %}
+                        <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}" class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800">
+                            <span class="material-icons">chevron_left</span>
+                        </a>
+                    {% else %}
+                        <span class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 text-gray-300">
+                            <span class="material-icons">chevron_left</span>
+                        </span>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if num == page_obj.number %}
+                            <span class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-white font-medium">{{ num }}</span>
+                        {% elif num >= page_obj.number|add:-2 and num <= page_obj.number|add:2 %}
+                            <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ num }}" class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.next_page_number }}" class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                            <span class="material-icons">chevron_right</span>
+                        </a>
+                    {% else %}
+                        <span class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 text-gray-300">
+                            <span class="material-icons">chevron_right</span>
+                        </span>
+                    {% endif %}
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,23 @@
+{% extends "account/base_entrance.html" %}
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head_title %}{% if LANGUAGE_CODE == 'tr' %}E-posta Dogrulama{% else %}Email Confirmation{% endif %}{% endblock %}
+
+{% block content %}
+<main class="max-w-md mx-auto px-4 py-12 min-h-screen">
+    <section class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2c2219] p-6 text-center">
+        {% if confirmation %}
+            <h1 class="text-2xl font-bold text-text-main dark:text-white">{% if LANGUAGE_CODE == 'tr' %}E-postayi Onayla{% else %}Confirm Email{% endif %}</h1>
+            <p class="mt-2 text-sm text-gray-500">{{ confirmation.email_address.email }}</p>
+            <form method="post" action="{% url 'account_confirm_email' confirmation.key %}" class="mt-6">
+                {% csrf_token %}
+                <button type="submit" class="w-full px-4 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors">{% if LANGUAGE_CODE == 'tr' %}Onayla{% else %}Confirm{% endif %}</button>
+            </form>
+        {% else %}
+            <h1 class="text-2xl font-bold text-red-600">{% if LANGUAGE_CODE == 'tr' %}Gecersiz Baglanti{% else %}Invalid Link{% endif %}</h1>
+            <p class="mt-2 text-sm text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Dogrulama baglantisi gecersiz veya suresi dolmus.{% else %}This confirmation link is invalid or expired.{% endif %}</p>
+        {% endif %}
+    </section>
+</main>
+{% endblock %}

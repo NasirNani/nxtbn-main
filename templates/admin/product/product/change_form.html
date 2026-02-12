@@ -1,0 +1,41 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block form_top %}
+  {{ block.super }}
+
+  {% if errors or adminform.form.errors %}
+    <div class="errornote">
+      <p><strong>{% if LANGUAGE_CODE == 'tr' %}Dogrulama detaylari:{% else %}Validation details:{% endif %}</strong></p>
+      <ul>
+        {% for field, error_list in adminform.form.errors.items %}
+          {% for error in error_list %}
+            <li>{% if LANGUAGE_CODE == 'tr' %}Ana form{% else %}Main form{% endif %} - {{ field }}: {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+
+        {% for inline_admin_formset in inline_admin_formsets %}
+          {% if inline_admin_formset.formset.non_form_errors %}
+            {% for error in inline_admin_formset.formset.non_form_errors %}
+              <li>{{ inline_admin_formset.opts.verbose_name_plural|capfirst }}: {{ error }}</li>
+            {% endfor %}
+          {% endif %}
+
+          {% for inline_admin_form in inline_admin_formset %}
+            {% if inline_admin_form.form.errors %}
+              {% for field, error_list in inline_admin_form.form.errors.items %}
+                {% for error in error_list %}
+                  <li>
+                    {{ inline_admin_formset.opts.verbose_name|capfirst }} {% if LANGUAGE_CODE == 'tr' %}satir{% else %}row{% endif %} -
+                    {{ field }}: {{ error }}
+                  </li>
+                {% endfor %}
+              {% endfor %}
+            {% endif %}
+          {% endfor %}
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+{% endblock %}

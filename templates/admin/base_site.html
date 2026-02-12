@@ -1,0 +1,26 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | nxtbn{% endblock %}
+
+{% block branding %}
+<div id="site-name" style="display:flex; align-items:center; gap:10px;">
+    <a href="{% url 'admin:index' %}">nxtbn</a>
+    <a href="{% url 'admin_analytics_dashboard' %}" style="font-size:12px; padding:2px 8px; border:1px solid #5b80b2; border-radius:3px; color:#5b80b2;">Operations</a>
+</div>
+{% endblock %}
+
+{% block usertools %}
+{{ block.super }}
+{% get_current_language as LANGUAGE_CODE %}
+<form action="{% url 'set_language' %}" method="post" style="display:inline-flex; gap:4px; margin-left:8px; vertical-align:middle;">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <button type="submit" name="language" value="tr" style="padding:2px 8px; border-radius:3px; border:1px solid #5b80b2; background:{% if LANGUAGE_CODE == 'tr' %}#5b80b2{% else %}transparent{% endif %}; color:white; cursor:pointer;">
+        TR
+    </button>
+    <button type="submit" name="language" value="en" style="padding:2px 8px; border-radius:3px; border:1px solid #5b80b2; background:{% if LANGUAGE_CODE == 'en' %}#5b80b2{% else %}transparent{% endif %}; color:white; cursor:pointer;">
+        EN
+    </button>
+</form>
+{% endblock %}

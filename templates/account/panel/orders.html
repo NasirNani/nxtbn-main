@@ -1,0 +1,89 @@
+{% extends "account/panel/base.html" %}
+{% load i18n currency %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head_title %}{% if LANGUAGE_CODE == 'tr' %}Siparislerim | Flexy Medical{% else %}My Orders | Flexy Medical{% endif %}{% endblock %}
+
+{% block panel_content %}
+<div class="rounded-xl bg-white dark:bg-[#2c2219] border border-gray-100 dark:border-gray-800 p-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+        <h2 class="text-xl font-semibold text-text-main dark:text-white">{% if LANGUAGE_CODE == 'tr' %}Siparis Geçmisi{% else %}Order History{% endif %}</h2>
+        <form method="get" class="flex flex-wrap gap-2">
+            <select name="status" class="rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 text-sm">
+                <option value="">{% if LANGUAGE_CODE == 'tr' %}Tum Durumlar{% else %}All Statuses{% endif %}</option>
+                {% for status in status_values %}
+                    <option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>{{ status|title }}</option>
+                {% endfor %}
+            </select>
+            <select name="sort" class="rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 text-sm">
+                <option value="latest" {% if selected_sort == 'latest' %}selected{% endif %}>{% if LANGUAGE_CODE == 'tr' %}En Yeni{% else %}Latest{% endif %}</option>
+                <option value="oldest" {% if selected_sort == 'oldest' %}selected{% endif %}>{% if LANGUAGE_CODE == 'tr' %}En Eski{% else %}Oldest{% endif %}</option>
+                <option value="total_desc" {% if selected_sort == 'total_desc' %}selected{% endif %}>{% if LANGUAGE_CODE == 'tr' %}Toplam (Azalan){% else %}Total (Desc){% endif %}</option>
+                <option value="total_asc" {% if selected_sort == 'total_asc' %}selected{% endif %}>{% if LANGUAGE_CODE == 'tr' %}Toplam (Artan){% else %}Total (Asc){% endif %}</option>
+            </select>
+            <button type="submit" class="inline-flex items-center px-3 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors">{% if LANGUAGE_CODE == 'tr' %}Uygula{% else %}Apply{% endif %}</button>
+        </form>
+    </div>
+
+    {% if orders %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="text-left border-b border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400">
+                    <th class="py-3">{% if LANGUAGE_CODE == 'tr' %}Siparis No{% else %}Order ID{% endif %}</th>
+                    <th class="py-3">{% if LANGUAGE_CODE == 'tr' %}Tarih{% else %}Date{% endif %}</th>
+                    <th class="py-3">{% if LANGUAGE_CODE == 'tr' %}Durum{% else %}Status{% endif %}</th>
+                    <th class="py-3">{% if LANGUAGE_CODE == 'tr' %}Urun{% else %}Items{% endif %}</th>
+                    <th class="py-3">{% if LANGUAGE_CODE == 'tr' %}Toplam{% else %}Total{% endif %}</th>
+                    <th class="py-3 text-right">{% if LANGUAGE_CODE == 'tr' %}Islem{% else %}Action{% endif %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr class="border-b border-gray-100 dark:border-gray-800">
+                    <td class="py-3 font-medium">#{{ order.id|stringformat:"s"|slice:":8"|upper }}</td>
+                    <td class="py-3">{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                    <td class="py-3">
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs
+                                {% if order.status == 'delivered' %}bg-green-100 text-green-700
+                                {% elif order.status == 'paid' %}bg-blue-100 text-blue-700
+                                {% elif order.status == 'shipped' %}bg-purple-100 text-purple-700
+                                {% elif order.status == 'cancelled' %}bg-red-100 text-red-700
+                                {% else %}bg-amber-100 text-amber-700{% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                        {% if order.cancellation_requested %}
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-red-50 text-red-700 ml-1">{% if LANGUAGE_CODE == 'tr' %}Iptal Talebi{% else %}Cancellation Requested{% endif %}</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3">{{ order.items_count }}</td>
+                    <td class="py-3 font-semibold">{{ order.total|try_currency }}</td>
+                    <td class="py-3 text-right">
+                        <a href="{% url 'order_detail' order.id %}" class="text-primary hover:underline mr-2">{% if LANGUAGE_CODE == 'tr' %}Detay{% else %}Details{% endif %}</a>
+                        <a href="{% url 'order_tracking' order.id %}" class="text-primary hover:underline">{% if LANGUAGE_CODE == 'tr' %}Takip{% else %}Tracking{% endif %}</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 p-8 text-center">
+        <p class="text-gray-500 dark:text-gray-300">{% if LANGUAGE_CODE == 'tr' %}Filtrelere uygun siparis bulunamadi.{% else %}No orders found for these filters.{% endif %}</p>
+        <a href="{% url 'products_list' %}" class="mt-4 inline-flex items-center px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors">{% if LANGUAGE_CODE == 'tr' %}Alisverise Basla{% else %}Start Shopping{% endif %}</a>
+    </div>
+    {% endif %}
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="mt-6 flex items-center justify-center gap-2">
+        {% if page_obj.has_previous %}
+            <a class="px-3 py-1 rounded-lg border border-gray-300 dark:border-gray-700 hover:text-primary" href="?status={{ selected_status }}&sort={{ selected_sort }}&page={{ page_obj.previous_page_number }}">Prev</a>
+        {% endif %}
+        <span class="text-sm text-gray-500 dark:text-gray-300">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+            <a class="px-3 py-1 rounded-lg border border-gray-300 dark:border-gray-700 hover:text-primary" href="?status={{ selected_status }}&sort={{ selected_sort }}&page={{ page_obj.next_page_number }}">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

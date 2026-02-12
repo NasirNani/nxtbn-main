@@ -1,0 +1,46 @@
+{% extends "account/panel/base.html" %}
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head_title %}{% if LANGUAGE_CODE == 'tr' %}Guvenlik | Flexy Medical{% else %}Security | Flexy Medical{% endif %}{% endblock %}
+
+{% block panel_content %}
+<div class="space-y-6">
+    <article class="rounded-xl bg-white dark:bg-[#2c2219] border border-gray-100 dark:border-gray-800 p-6">
+        <h2 class="text-xl font-semibold text-text-main dark:text-white mb-4">{% if LANGUAGE_CODE == 'tr' %}Guvenlik ve Giris{% else %}Security and Sign-in{% endif %}</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                <p class="text-gray-500 dark:text-gray-300">{% if LANGUAGE_CODE == 'tr' %}Son Giris{% else %}Last Login{% endif %}</p>
+                <p class="mt-1 font-semibold text-text-main dark:text-white">{{ request.user.last_login|date:"Y-m-d H:i"|default:"-" }}</p>
+            </div>
+            <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                <p class="text-gray-500 dark:text-gray-300">{% if LANGUAGE_CODE == 'tr' %}Uyelik Tarihi{% else %}Joined{% endif %}</p>
+                <p class="mt-1 font-semibold text-text-main dark:text-white">{{ request.user.date_joined|date:"Y-m-d H:i" }}</p>
+            </div>
+        </div>
+    </article>
+
+    <article class="rounded-xl bg-white dark:bg-[#2c2219] border border-gray-100 dark:border-gray-800 p-6">
+        <h2 class="text-xl font-semibold text-text-main dark:text-white mb-4">{% if LANGUAGE_CODE == 'tr' %}E-posta Dogrulama{% else %}Email Verification{% endif %}</h2>
+        {% if primary_email %}
+            <p class="text-sm text-gray-600 dark:text-gray-300">
+                {{ primary_email.email }} -
+                {% if primary_email.verified %}
+                    <span class="text-green-700">{% if LANGUAGE_CODE == 'tr' %}Dogrulandi{% else %}Verified{% endif %}</span>
+                {% else %}
+                    <span class="text-amber-700">{% if LANGUAGE_CODE == 'tr' %}Dogrulanmadi{% else %}Not verified{% endif %}</span>
+                {% endif %}
+            </p>
+        {% else %}
+            <p class="text-sm text-gray-600 dark:text-gray-300">{% if LANGUAGE_CODE == 'tr' %}Kayitli e-posta bulunamadi.{% else %}No registered email found.{% endif %}</p>
+        {% endif %}
+
+        <div class="mt-4 flex flex-wrap gap-3">
+            <a href="{% url 'account_email' %}" class="inline-flex items-center px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors">{% if LANGUAGE_CODE == 'tr' %}E-posta Yonetimi{% else %}Manage Email{% endif %}</a>
+            <a href="{% url 'account_change_password' %}" class="inline-flex items-center px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 font-semibold hover:text-primary transition-colors">{% if LANGUAGE_CODE == 'tr' %}Sifre Degistir{% else %}Change Password{% endif %}</a>
+            <a href="{% url 'account_reset_password' %}" class="inline-flex items-center px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 font-semibold hover:text-primary transition-colors">{% if LANGUAGE_CODE == 'tr' %}Sifre Sifirla{% else %}Reset Password{% endif %}</a>
+            <a href="{% url 'account_logout' %}" class="inline-flex items-center px-4 py-2 rounded-lg border border-red-300 text-red-700 font-semibold hover:bg-red-50 transition-colors">{% if LANGUAGE_CODE == 'tr' %}Cikis Yap{% else %}Log Out{% endif %}</a>
+        </div>
+    </article>
+</div>
+{% endblock %}

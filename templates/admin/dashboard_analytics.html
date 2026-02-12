@@ -1,0 +1,112 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+<div id="content-main">
+    <h1>Operations Dashboard</h1>
+    <p style="margin-bottom: 16px;">Operational overview for sales, orders, inventory, and review moderation.</p>
+    <p style="margin-bottom: 18px;">
+        <a href="{% url 'admin:product_product_import_csv' %}" class="button">Import Products CSV</a>
+        <a href="{% url 'admin:product_product_export_csv' %}" class="button">Export Products CSV</a>
+        <a href="{% url 'admin:order_order_export_csv' %}" class="button">Export Orders CSV</a>
+    </p>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-bottom:20px;">
+        <div class="module"><h2>Total Orders</h2><p style="font-size:24px; font-weight:700;">{{ metrics.orders_total }}</p></div>
+        <div class="module"><h2>Pending</h2><p style="font-size:24px; font-weight:700;">{{ metrics.orders_pending }}</p></div>
+        <div class="module"><h2>Processing</h2><p style="font-size:24px; font-weight:700;">{{ metrics.orders_processing }}</p></div>
+        <div class="module"><h2>Paid</h2><p style="font-size:24px; font-weight:700;">{{ metrics.orders_paid }}</p></div>
+        <div class="module"><h2>30d Sales</h2><p style="font-size:24px; font-weight:700;">&#8378;{{ metrics.sales_30_days|floatformat:2 }}</p></div>
+        <div class="module"><h2>Total Products</h2><p style="font-size:24px; font-weight:700;">{{ metrics.products_total }}</p></div>
+        <div class="module"><h2>Live Products</h2><p style="font-size:24px; font-weight:700;">{{ metrics.products_live }}</p></div>
+        <div class="module"><h2>Low Stock</h2><p style="font-size:24px; font-weight:700;">{{ metrics.low_stock_count }}</p></div>
+        <div class="module"><h2>Pending Reviews</h2><p style="font-size:24px; font-weight:700;">{{ metrics.pending_reviews }}</p></div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;">
+        <div class="module">
+            <h2>Order Queue</h2>
+            <table style="width:100%;">
+                <thead>
+                    <tr><th>ID</th><th>Status</th><th>Total</th><th>Date</th></tr>
+                </thead>
+                <tbody>
+                    {% for order in order_queue %}
+                    <tr>
+                        <td><a href="{% url 'admin:order_order_change' order.id %}">{{ order.id|stringformat:"s"|slice:":8"|upper }}</a></td>
+                        <td>{{ order.get_status_display }}</td>
+                        <td>&#8378;{{ order.total|floatformat:2 }}</td>
+                        <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4">No pending queue.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="module">
+            <h2>Low Stock Variants</h2>
+            <table style="width:100%;">
+                <thead>
+                    <tr><th>Product</th><th>Variant</th><th>Stock</th></tr>
+                </thead>
+                <tbody>
+                    {% for variant in low_stock_variants %}
+                    <tr>
+                        <td><a href="{% url 'admin:product_product_change' variant.product.id %}">{{ variant.product.name }}</a></td>
+                        <td>{{ variant.name|default:"Default" }}</td>
+                        <td>{{ variant.stock }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3">No low stock items.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:18px;">
+        <div class="module">
+            <h2>Review Moderation Queue</h2>
+            <table style="width:100%;">
+                <thead>
+                    <tr><th>Product</th><th>User</th><th>Rating</th><th>Date</th></tr>
+                </thead>
+                <tbody>
+                    {% for review in review_queue %}
+                    <tr>
+                        <td>{{ review.product.name }}</td>
+                        <td>{{ review.user.email }}</td>
+                        <td>{{ review.rating }}/5</td>
+                        <td>{{ review.created_at|date:"Y-m-d H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4">No pending reviews.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="module">
+            <h2>Daily Sales (30 Days)</h2>
+            <table style="width:100%;">
+                <thead>
+                    <tr><th>Date</th><th>Orders</th><th>Total</th></tr>
+                </thead>
+                <tbody>
+                    {% for row in sales_by_day %}
+                    <tr>
+                        <td>{{ row.day }}</td>
+                        <td>{{ row.count }}</td>
+                        <td>&#8378;{{ row.total|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3">No sales data in last 30 days.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

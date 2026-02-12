@@ -1,0 +1,36 @@
+{% extends "account/base.html" %}
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block content %}
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-screen">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-text-main dark:text-white">{% if LANGUAGE_CODE == 'tr' %}Hesabim{% else %}My Account{% endif %}</h1>
+        <p class="mt-2 text-gray-500 dark:text-gray-300">
+            {% if LANGUAGE_CODE == 'tr' %}Hesap bilgileriniz, siparisleriniz ve ayarlariniz.{% else %}Your profile, orders, and account settings.{% endif %}
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <aside class="lg:col-span-3">
+            <div class="rounded-xl bg-white dark:bg-[#2c2219] border border-gray-100 dark:border-gray-800 p-3">
+                <nav class="space-y-2">
+                    {% for item in account_sidebar %}
+                        <a href="{% url item.url_name %}"
+                           class="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors {% if account_nav_section == item.key %}bg-primary text-white{% else %}text-text-main dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+                            <span>{% if LANGUAGE_CODE == 'tr' %}{{ item.label_tr }}{% else %}{{ item.label_en }}{% endif %}</span>
+                            {% if account_nav_section == item.key %}
+                                <span class="material-icons text-base">chevron_right</span>
+                            {% endif %}
+                        </a>
+                    {% endfor %}
+                </nav>
+            </div>
+        </aside>
+
+        <section class="lg:col-span-9">
+            {% block panel_content %}{% endblock %}
+        </section>
+    </div>
+</main>
+{% endblock content %}

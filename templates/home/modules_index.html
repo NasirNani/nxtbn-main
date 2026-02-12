@@ -1,0 +1,20 @@
+{% extends "account/base.html" %}
+
+{% block head_title %}
+Modules | nxtbn
+{% endblock head_title %}
+
+{% block content %}
+<h1>Module Frontend</h1>
+<p class="subtitle">Each backend folder now has a browsable frontend entry page.</p>
+
+<div class="module-grid">
+    {% for module in modules %}
+        <a class="module-tile" href="{% url 'module_detail' module.label %}">
+            <h2>{{ module.title }}</h2>
+            <p>{{ module.description }}</p>
+            <span class="module-link">Open {{ module.label }}</span>
+        </a>
+    {% endfor %}
+</div>
+{% endblock content %}

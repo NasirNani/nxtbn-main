@@ -1,0 +1,41 @@
+{% extends "account/base.html" %}
+
+{% block head_title %}
+{{ module.title }} | nxtbn
+{% endblock head_title %}
+
+{% block content %}
+<h1>{{ module.title }}</h1>
+<p class="subtitle">{{ module.description }}</p>
+
+<div class="button-row">
+    <a class="btn btn-secondary" href="{% url 'modules_index' %}">Back to modules</a>
+    {% if module.label == "product" %}
+        <a class="btn" href="{% url 'products_list' %}">Open storefront products</a>
+    {% endif %}
+</div>
+
+<section class="module-overview">
+    <h2>Data Summary</h2>
+    {% if model_summaries %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>Records</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in model_summaries %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.count }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>This module currently has no registered models.</p>
+    {% endif %}
+</section>
+{% endblock content %}

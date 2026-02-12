@@ -1,0 +1,324 @@
+﻿{% extends "account/base.html" %}
+{% load i18n currency %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head_title %}{{ product.name }} | Flexy Medical{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+    <nav aria-label="Breadcrumb" class="flex mb-8 text-sm text-text-main/60 dark:text-text-main-dark/60">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li><a class="hover:text-primary transition-colors" href="{% url 'home' %}">{% if LANGUAGE_CODE == 'tr' %}Ana Sayfa{% else %}Home{% endif %}</a></li>
+            <li><span class="material-icons text-base mx-1">chevron_right</span></li>
+            <li><a class="hover:text-primary transition-colors" href="{% url 'products_list' %}">{% if LANGUAGE_CODE == 'tr' %}Magaza{% else %}Shop{% endif %}</a></li>
+            <li><span class="material-icons text-base mx-1">chevron_right</span></li>
+            <li class="text-primary font-medium">{{ product.name }}</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div class="lg:grid lg:grid-cols-2 lg:gap-x-12 lg:items-start">
+        <div class="flex flex-col-reverse lg:flex-row gap-4 mb-10 lg:mb-0">
+            <div class="hidden lg:flex flex-col gap-4 w-24">
+                {% for image in gallery_images %}
+                <button onclick="changeMainImage('{{ image.image.url }}')" class="aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-primary transition-all opacity-70 hover:opacity-100 focus:ring-2 focus:ring-primary">
+                    <img alt="{{ product.name }} view {{ forloop.counter }}" class="w-full h-full object-cover" src="{{ image.image.url }}">
+                </button>
+                {% endfor %}
+            </div>
+
+            <div id="mainImageWrapper" class="w-full aspect-[4/5] sm:aspect-[3/4] lg:h-[600px] relative rounded-xl overflow-hidden bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 cursor-zoom-in">
+                <span class="absolute top-4 left-4 z-10 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide {% if has_available_variants %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-700{% endif %}">
+                    {% if has_available_variants %}{% if LANGUAGE_CODE == 'tr' %}Stokta{% else %}In Stock{% endif %}{% else %}{% if LANGUAGE_CODE == 'tr' %}Tukendi{% else %}Out of Stock{% endif %}{% endif %}
+                </span>
+                {% if gallery_images %}
+                <img id="mainImage" alt="{{ product.name }}" class="w-full h-full object-cover object-center transition-transform duration-150 ease-out will-change-transform" src="{{ gallery_images.0.image.url }}">
+                {% else %}
+                <div class="w-full h-full flex items-center justify-center text-gray-500 bg-gray-100">{% if LANGUAGE_CODE == 'tr' %}Gorsel Yok{% else %}No Image Available{% endif %}</div>
+                {% endif %}
+            </div>
+
+            <div class="flex lg:hidden gap-3 overflow-x-auto pb-2">
+                {% for image in gallery_images %}
+                <button onclick="changeMainImage('{{ image.image.url }}')" class="flex-shrink-0 w-20 aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                    <img alt="{{ product.name }}" class="w-full h-full object-cover" src="{{ image.image.url }}">
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="mt-10 px-4 sm:px-0 sm:mt-16 lg:mt-0">
+            <div class="mb-6">
+                <h1 class="text-3xl font-bold tracking-tight text-text-main dark:text-white sm:text-4xl">{{ product.name|default:"Product" }}</h1>
+                <div class="mt-3 flex items-center">
+                    <div class="flex items-center text-primary">
+                        <span class="material-icons text-xl">{% if average_rating >= 1 %}star{% else %}star_border{% endif %}</span>
+                        <span class="material-icons text-xl">{% if average_rating >= 2 %}star{% else %}star_border{% endif %}</span>
+                        <span class="material-icons text-xl">{% if average_rating >= 3 %}star{% else %}star_border{% endif %}</span>
+                        <span class="material-icons text-xl">{% if average_rating >= 4 %}star{% else %}star_border{% endif %}</span>
+                        <span class="material-icons text-xl">{% if average_rating >= 5 %}star{% else %}star_border{% endif %}</span>
+                    </div>
+                    <p class="ml-3 text-sm text-text-main/70 dark:text-text-main-dark/70">{{ average_rating|floatformat:1 }} ({{ reviews_count }} {% if LANGUAGE_CODE == 'tr' %}yorum{% else %}reviews{% endif %})</p>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                {% if default_variant %}
+                <p class="text-3xl tracking-tight text-text-main dark:text-white font-bold" id="productPrice">{{ default_variant.price|try_currency }}</p>
+                {% else %}
+                <p class="text-3xl tracking-tight text-text-main dark:text-white font-bold">{% if LANGUAGE_CODE == 'tr' %}Fiyatlandirilmamis{% else %}Unpriced{% endif %}</p>
+                {% endif %}
+            </div>
+
+            <div class="mt-6 text-base text-text-main/80 dark:text-text-main-dark/80 leading-relaxed">{{ product.description|linebreaks }}</div>
+
+            {% if variants %}
+            <div class="mt-8 border-t border-gray-200 dark:border-gray-700 pt-8">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-medium text-text-main dark:text-white">{% if LANGUAGE_CODE == 'tr' %}Varyant Secin{% else %}Select Variant{% endif %}</h3>
+                    <span class="text-sm text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Stok bilgisi varyanta ozeldir{% else %}Stock is variant based{% endif %}</span>
+                </div>
+
+                <form id="addToCartForm" method="post" action="{% if default_variant %}{% url 'cart_add' default_variant.id %}{% endif %}">
+                    {% csrf_token %}
+                    <div class="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-6 mb-8">
+                        {% for variant in variants %}
+                        <label class="relative flex items-center justify-center rounded-lg border py-3 px-3 text-sm font-medium uppercase sm:flex-1 cursor-pointer transition-all {% if variant.is_available %}bg-white dark:bg-background-dark text-text-main dark:text-white shadow-sm border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 has-[:checked]:bg-primary has-[:checked]:text-white has-[:checked]:border-transparent{% else %}bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed{% endif %}">
+                            <input
+                                type="radio"
+                                name="variant_choice"
+                                value="{{ variant.id }}"
+                                class="sr-only"
+                                data-url="{% url 'cart_add' variant.id %}"
+                                data-price="{{ variant.price }}"
+                                data-available="{% if variant.is_available %}1{% else %}0{% endif %}"
+                                {% if variant == default_variant %}checked{% endif %}
+                                {% if not variant.is_available %}disabled{% endif %}
+                                onclick="updateVariant(this)">
+                            <span>{{ variant.name|default:"Default" }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+
+                    <div class="flex gap-4">
+                        <div class="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-background-dark">
+                            <button type="button" onclick="decrementQty()" class="px-4 py-3 text-gray-600 dark:text-gray-300 hover:text-primary transition-colors"><span class="material-icons text-sm">remove</span></button>
+                            <input id="quantityInput" class="w-12 text-center border-none focus:ring-0 bg-transparent text-text-main dark:text-white font-medium p-0" name="quantity" type="number" value="1" min="1" readonly>
+                            <button type="button" onclick="incrementQty()" class="px-4 py-3 text-gray-600 dark:text-gray-300 hover:text-primary transition-colors"><span class="material-icons text-sm">add</span></button>
+                        </div>
+                        <button id="addToCartButton" type="submit" class="flex-1 bg-primary border border-transparent rounded-lg py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-lg shadow-primary/30 transition-all transform active:scale-[0.98] {% if not has_available_variants %}opacity-40 cursor-not-allowed{% endif %}" {% if not has_available_variants %}disabled{% endif %}>
+                            {% if LANGUAGE_CODE == 'tr' %}Sepete Ekle{% else %}Add to Cart{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+            {% else %}
+            <div class="mt-8"><p class="text-red-500">{% if LANGUAGE_CODE == 'tr' %}Bu urun icin varyant bulunamadi.{% else %}No variants configured for this product.{% endif %}</p></div>
+            {% endif %}
+
+            <div class="mt-6 flex items-center gap-6 text-sm text-text-main/70 dark:text-text-main-dark/70">
+                <div class="flex items-center gap-2"><span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>{% if LANGUAGE_CODE == 'tr' %}Gonderime Hazir{% else %}Ready to ship{% endif %}</div>
+                <div class="flex items-center gap-2"><span class="material-icons text-base text-primary">local_shipping</span>{% if LANGUAGE_CODE == 'tr' %}&#8378;500 uzeri ucretsiz kargo{% else %}Free shipping over &#8378;500{% endif %}</div>
+            </div>
+
+            <div class="mt-10 border-t border-gray-200 dark:border-gray-700">
+                <details class="group border-b border-gray-200 dark:border-gray-700">
+                    <summary class="flex w-full items-center justify-between py-6 text-left cursor-pointer list-none">
+                        <span class="text-base font-medium text-text-main dark:text-white group-hover:text-primary transition-colors">{% if LANGUAGE_CODE == 'tr' %}Teknik Ozellikler{% else %}Technical Specifications{% endif %}</span>
+                        <span class="material-icons text-primary transition group-open:rotate-180">expand_more</span>
+                    </summary>
+                    <div class="pb-6 text-sm text-gray-500"><p>{% if LANGUAGE_CODE == 'tr' %}Detayli teknik bilgiler burada yer alir.{% else %}Detailed specs would go here.{% endif %}</p></div>
+                </details>
+                <details class="group border-b border-gray-200 dark:border-gray-700">
+                    <summary class="flex w-full items-center justify-between py-6 text-left cursor-pointer list-none">
+                        <span class="text-base font-medium text-text-main dark:text-white group-hover:text-primary transition-colors">{% if LANGUAGE_CODE == 'tr' %}Bakim Talimatlari{% else %}Care Instructions{% endif %}</span>
+                        <span class="material-icons text-primary transition group-open:rotate-180">expand_more</span>
+                    </summary>
+                    <div class="pb-6 text-sm text-gray-500"><p>{% if LANGUAGE_CODE == 'tr' %}Hafif sabunla yikayip havada kurutun.{% else %}Wash with mild soap and air dry.{% endif %}</p></div>
+                </details>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div class="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-[#2c2219] p-6 lg:p-8">
+        <h2 class="text-2xl font-bold text-text-main dark:text-white mb-6">{% if LANGUAGE_CODE == 'tr' %}Degerlendirme ve Yorumlar{% else %}Ratings and Reviews{% endif %}</h2>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="lg:col-span-1 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+                <p class="text-sm text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Ortalama Puan{% else %}Average Rating{% endif %}</p>
+                <p class="text-4xl font-bold text-text-main dark:text-white mt-1">{{ average_rating|floatformat:1 }}</p>
+                <p class="text-sm text-gray-500 mt-1">{{ reviews_count }} {% if LANGUAGE_CODE == 'tr' %}yorum{% else %}reviews{% endif %}</p>
+            </div>
+            <div class="lg:col-span-2 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-3">
+                {% for score, count in rating_histogram.items %}
+                    <div class="grid grid-cols-[42px_1fr_48px] items-center gap-3 text-sm">
+                        <span>{{ score }} <span class="material-icons text-xs align-middle">star</span></span>
+                        <div class="h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                            <span class="block h-full bg-primary" style="width:{% if reviews_count %}{% widthratio count reviews_count 100 %}{% else %}0{% endif %}%"></span>
+                        </div>
+                        <span class="text-right text-gray-500">{{ count }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if user.is_authenticated %}
+            <form method="post" class="grid gap-4 mb-8 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+                {% csrf_token %}
+                <div>
+                    <label for="rating" class="block text-sm font-medium text-text-main dark:text-white mb-1">{% if LANGUAGE_CODE == 'tr' %}Puaniniz{% else %}Your Rating{% endif %}</label>
+                    <select id="rating" name="rating" class="w-full sm:w-48 rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800" required>
+                        <option value="">{% if LANGUAGE_CODE == 'tr' %}Puan secin{% else %}Select rating{% endif %}</option>
+                        <option value="5" {% if user_review and user_review.rating == 5 %}selected{% endif %}>5</option>
+                        <option value="4" {% if user_review and user_review.rating == 4 %}selected{% endif %}>4</option>
+                        <option value="3" {% if user_review and user_review.rating == 3 %}selected{% endif %}>3</option>
+                        <option value="2" {% if user_review and user_review.rating == 2 %}selected{% endif %}>2</option>
+                        <option value="1" {% if user_review and user_review.rating == 1 %}selected{% endif %}>1</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="comment" class="block text-sm font-medium text-text-main dark:text-white mb-1">{% if LANGUAGE_CODE == 'tr' %}Yorumunuz{% else %}Your Comment{% endif %}</label>
+                    <textarea id="comment" name="comment" rows="4" class="w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800" placeholder="{% if LANGUAGE_CODE == 'tr' %}Urun hakkinda dusuncenizi yazin...{% else %}Write your feedback about this product...{% endif %}">{% if user_review %}{{ user_review.comment }}{% endif %}</textarea>
+                </div>
+                <div>
+                    <button type="submit" class="inline-flex items-center px-5 py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition-colors">
+                        {% if user_review %}{% if LANGUAGE_CODE == 'tr' %}Yorumu Guncelle{% else %}Update Review{% endif %}{% else %}{% if LANGUAGE_CODE == 'tr' %}Yorum Gonder{% else %}Submit Review{% endif %}{% endif %}
+                    </button>
+                </div>
+            </form>
+        {% else %}
+            <p class="mb-8 text-sm text-gray-600 dark:text-gray-300">
+                {% if LANGUAGE_CODE == 'tr' %}Yorum yapmak icin{% else %}Please{% endif %}
+                <a href="{% url 'account_login' %}" class="text-primary font-semibold hover:underline">{% if LANGUAGE_CODE == 'tr' %}giris yapin{% else %}sign in{% endif %}</a>.
+            </p>
+        {% endif %}
+
+        <div class="space-y-4">
+            {% for review in reviews %}
+                <article class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex items-center justify-between gap-4">
+                        <p class="font-semibold text-text-main dark:text-white">{{ review.user.get_full_name|default:review.user.username|default:review.user.email }}</p>
+                        <p class="text-xs text-gray-500">{{ review.created_at|date:"Y-m-d H:i" }}</p>
+                    </div>
+                    <div class="mt-2 flex items-center text-primary">
+                        <span class="material-icons text-sm">{% if review.rating >= 1 %}star{% else %}star_border{% endif %}</span>
+                        <span class="material-icons text-sm">{% if review.rating >= 2 %}star{% else %}star_border{% endif %}</span>
+                        <span class="material-icons text-sm">{% if review.rating >= 3 %}star{% else %}star_border{% endif %}</span>
+                        <span class="material-icons text-sm">{% if review.rating >= 4 %}star{% else %}star_border{% endif %}</span>
+                        <span class="material-icons text-sm">{% if review.rating >= 5 %}star{% else %}star_border{% endif %}</span>
+                        <span class="ml-2 text-sm text-gray-600 dark:text-gray-300">{{ review.rating }}/5</span>
+                    </div>
+                    {% if review.comment %}<p class="mt-3 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">{{ review.comment }}</p>{% endif %}
+                </article>
+            {% empty %}
+                <p class="text-sm text-gray-500 dark:text-gray-400">{% if LANGUAGE_CODE == 'tr' %}Bu urun icin henuz yorum yok. Ilk yorumu siz yapin.{% else %}No reviews yet for this product. Be the first to review.{% endif %}</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% if related_products %}
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-text-main dark:text-white mb-6">{% if LANGUAGE_CODE == 'tr' %}Benzer Urunler{% else %}Related Products{% endif %}</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {% for related in related_products %}
+            {% with related_variant=related.default_variant|default:related.variants.first %}
+            <article class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2c2219] overflow-hidden">
+                <a href="{% url 'product_detail' related.id %}" class="block aspect-square bg-gray-100 dark:bg-gray-800">
+                    {% if related_variant and related_variant.variant_image.first %}
+                        <img src="{{ related_variant.variant_image.first.image.url }}" alt="{{ related.name }}" class="w-full h-full object-cover">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Gorsel Yok{% else %}No Image{% endif %}</div>
+                    {% endif %}
+                </a>
+                <div class="p-4">
+                    <h3 class="font-semibold text-text-main dark:text-white"><a href="{% url 'product_detail' related.id %}">{{ related.name }}</a></h3>
+                    {% if related_variant %}
+                        <p class="mt-1 font-bold text-primary">{{ related_variant.price|try_currency }}</p>
+                    {% endif %}
+                </div>
+            </article>
+            {% endwith %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% endblock content %}
+
+{% block extra_body %}
+<script>
+    function changeMainImage(url) {
+        const main = document.getElementById('mainImage');
+        if (main) {
+            main.src = url;
+        }
+    }
+
+    function updateVariant(radio) {
+        const url = radio.getAttribute('data-url');
+        const price = parseFloat(radio.getAttribute('data-price'));
+        const available = radio.getAttribute('data-available') === '1';
+        const form = document.getElementById('addToCartForm');
+        const button = document.getElementById('addToCartButton');
+
+        if (form && url) {
+            form.action = url;
+        }
+
+        const formatted = Number.isFinite(price)
+            ? price.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            : radio.getAttribute('data-price');
+        const priceEl = document.getElementById('productPrice');
+        if (priceEl) {
+            priceEl.innerText = '\u20BA' + formatted;
+        }
+
+        if (button) {
+            button.disabled = !available;
+            button.classList.toggle('opacity-40', !available);
+            button.classList.toggle('cursor-not-allowed', !available);
+        }
+    }
+
+    function incrementQty() {
+        const input = document.getElementById('quantityInput');
+        input.value = parseInt(input.value, 10) + 1;
+    }
+
+    function decrementQty() {
+        const input = document.getElementById('quantityInput');
+        if (parseInt(input.value, 10) > 1) {
+            input.value = parseInt(input.value, 10) - 1;
+        }
+    }
+
+    (function enableImageZoom() {
+        const wrapper = document.getElementById('mainImageWrapper');
+        const img = document.getElementById('mainImage');
+        if (!wrapper || !img) return;
+
+        const zoomScale = 2;
+
+        wrapper.addEventListener('mousemove', function (event) {
+            const rect = wrapper.getBoundingClientRect();
+            const x = ((event.clientX - rect.left) / rect.width) * 100;
+            const y = ((event.clientY - rect.top) / rect.height) * 100;
+            img.style.transformOrigin = x + '% ' + y + '%';
+            img.style.transform = 'scale(' + zoomScale + ')';
+        });
+
+        wrapper.addEventListener('mouseenter', function () {
+            img.style.transform = 'scale(' + zoomScale + ')';
+        });
+
+        wrapper.addEventListener('mouseleave', function () {
+            img.style.transformOrigin = 'center center';
+            img.style.transform = 'scale(1)';
+        });
+    })();
+</script>
+{% endblock %}
