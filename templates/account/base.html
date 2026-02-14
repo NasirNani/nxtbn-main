@@ -93,7 +93,8 @@
                 <!-- Logo -->
                 <div class="flex-shrink-0 flex items-center gap-2">
                     <a href="{% url 'home' %}" class="flex items-center gap-2">
-                        <img src="{% static 'images/logo.png' %}" alt="Flexy Medical" class="h-10 w-auto object-contain">
+                        <img src="{% static 'images/logo.png' %}" alt="Flexy Medical" class="h-10 w-auto object-contain dark:hidden">
+                        <img src="{% static 'images/logo-full.png' %}" alt="Flexy Medical" class="hidden h-10 w-auto object-contain dark:block">
                     </a>
                 </div>
                 <!-- Desktop Menu -->
@@ -177,7 +178,8 @@
                 <!-- Brand Info -->
                 <div class="col-span-1 lg:col-span-1">
                     <div class="flex items-center gap-2 mb-4">
-                        <img src="{% static 'images/logo.png' %}" alt="Flexy Medical" class="h-10 w-auto object-contain">
+                        <img src="{% static 'images/logo.png' %}" alt="Flexy Medical" class="h-10 w-auto object-contain dark:hidden">
+                        <img src="{% static 'images/logo-full.png' %}" alt="Flexy Medical" class="hidden h-10 w-auto object-contain dark:block">
                     </div>
                     <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">
                         {% if LANGUAGE_CODE == 'tr' %}
