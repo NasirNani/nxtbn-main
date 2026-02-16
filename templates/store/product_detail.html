@@ -228,8 +228,8 @@
             {% with related_variant=related.default_variant|default:related.variants.first %}
             <article class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2c2219] overflow-hidden">
                 <a href="{% url 'product_detail' related.id %}" class="block aspect-square bg-gray-100 dark:bg-gray-800">
-                    {% if related_variant and related_variant.variant_image.first %}
-                        <img src="{{ related_variant.variant_image.first.image.url }}" alt="{{ related.name }}" class="w-full h-full object-cover">
+                    {% if related.card_image %}
+                        <img src="{{ related.card_image.image.url }}" alt="{{ related.name }}" class="w-full h-full object-cover">
                     {% else %}
                         <div class="w-full h-full flex items-center justify-center text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Gorsel Yok{% else %}No Image{% endif %}</div>
                     {% endif %}

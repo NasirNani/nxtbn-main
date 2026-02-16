@@ -8,12 +8,12 @@ class Coupon(AbstractBaseModel):
     TYPE_PERCENT = "percent"
     TYPE_FIXED = "fixed"
     DISCOUNT_TYPE_CHOICES = [
-        (TYPE_PERCENT, "Percent"),
-        (TYPE_FIXED, "Fixed"),
+        (TYPE_PERCENT, "Yuzde"),
+        (TYPE_FIXED, "Sabit"),
     ]
 
     code = models.CharField(max_length=40, unique=True)
-    discount_type = models.CharField(max_length=12, choices=DISCOUNT_TYPE_CHOICES, default=TYPE_PERCENT)
+    discount_type = models.CharField(max_length=12, choices=DISCOUNT_TYPE_CHOICES, default=TYPE_PERCENT, verbose_name="Indirim Tipi")
     discount_value = models.DecimalField(max_digits=10, decimal_places=2)
     min_subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     max_discount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
@@ -22,6 +22,10 @@ class Coupon(AbstractBaseModel):
     is_active = models.BooleanField(default=True)
     starts_at = models.DateTimeField(default=timezone.now)
     ends_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Kupon"
+        verbose_name_plural = "Kuponlar"
 
     def __str__(self):
         return self.code

@@ -1,29 +1,30 @@
 from django.contrib import admin
 
+from nxtbn.core.admin_mixins import AutoUserStampMixin, OpsAdminMixin
 from .models import Document, Image
 
 
 @admin.register(Image)
-class ImageAdmin(admin.ModelAdmin):
+class ImageAdmin(AutoUserStampMixin, OpsAdminMixin, admin.ModelAdmin):
     list_display = ("name", "created_by", "last_modified_by", "created_at")
-    search_fields = ("name", "image_alt_text")
+    list_filter = ("created_at",)
+    search_fields = ("id", "name", "image_alt_text")
     exclude = ("created_by", "last_modified_by")
-
-    def save_model(self, request, obj, form, change):
-        if not change or obj.created_by_id is None:
-            obj.created_by = request.user
-        obj.last_modified_by = request.user
-        super().save_model(request, obj, form, change)
+    readonly_fields = ("id", "created_at", "last_modified")
+    fieldsets = (
+        ("Medya", {"fields": ("name", "image", "image_alt_text")}),
+        ("Kayit", {"fields": ("id", "created_at", "last_modified"), "classes": ("collapse",)}),
+    )
 
 
 @admin.register(Document)
-class DocumentAdmin(admin.ModelAdmin):
+class DocumentAdmin(AutoUserStampMixin, OpsAdminMixin, admin.ModelAdmin):
     list_display = ("name", "created_by", "last_modified_by", "created_at")
-    search_fields = ("name", "image_alt_text")
+    list_filter = ("created_at",)
+    search_fields = ("id", "name", "image_alt_text")
     exclude = ("created_by", "last_modified_by")
-
-    def save_model(self, request, obj, form, change):
-        if not change or obj.created_by_id is None:
-            obj.created_by = request.user
-        obj.last_modified_by = request.user
-        super().save_model(request, obj, form, change)
+    readonly_fields = ("id", "created_at", "last_modified")
+    fieldsets = (
+        ("Dokuman", {"fields": ("name", "document", "image_alt_text")}),
+        ("Kayit", {"fields": ("id", "created_at", "last_modified"), "classes": ("collapse",)}),
+    )

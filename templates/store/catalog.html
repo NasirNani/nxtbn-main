@@ -125,14 +125,8 @@
                     <div class="relative aspect-square bg-gray-100 dark:bg-gray-800 overflow-hidden">
                         {% with variant=product.default_variant|default:product.variants.first %}
                             <a href="{% url 'product_detail' product.id %}">
-                                {% if variant %}
-                                    {% with card_image=variant.variant_image.first %}
-                                        {% if card_image %}
-                                            <img src="{{ card_image.image.url }}" alt="{{ card_image.image_alt_text|default:product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                                        {% else %}
-                                            <div class="w-full h-full flex items-center justify-center text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Gorsel Yok{% else %}No Image{% endif %}</div>
-                                        {% endif %}
-                                    {% endwith %}
+                                {% if product.card_image %}
+                                    <img src="{{ product.card_image.image.url }}" alt="{{ product.card_image.image_alt_text|default:product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                                 {% else %}
                                     <div class="w-full h-full flex items-center justify-center text-gray-500">{% if LANGUAGE_CODE == 'tr' %}Gorsel Yok{% else %}No Image{% endif %}</div>
                                 {% endif %}
@@ -156,7 +150,7 @@
                     </div>
 
                     <div class="p-4">
-                        <div class="mb-1 text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">{{ product.category|default:"Medical" }}</div>
+                        <div class="mb-1 text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">{{ product.effective_category|default:"Medical" }}</div>
                         <h3 class="font-bold text-lg text-text-main dark:text-white mb-1">
                             <a href="{% url 'product_detail' product.id %}" class="hover:text-primary transition-colors">{{ product.name }}</a>
                         </h3>

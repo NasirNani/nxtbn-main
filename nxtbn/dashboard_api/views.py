@@ -1,6 +1,7 @@
 from datetime import timedelta
 from decimal import Decimal
 
+from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count, Sum, Value
 from django.db.models.functions import Coalesce, TruncDate
@@ -55,15 +56,13 @@ def analytics_dashboard(request):
         .order_by("day")
     )
 
-    return render(
-        request,
-        "admin/dashboard_analytics.html",
-        {
-            "title": "Operations Dashboard",
-            "metrics": metrics,
-            "low_stock_variants": low_stock_variants,
-            "order_queue": order_queue,
-            "review_queue": review_queue,
-            "sales_by_day": sales_by_day,
-        },
-    )
+    context = {
+        **admin.site.each_context(request),
+        "title": "Operasyon Panosu",
+        "metrics": metrics,
+        "low_stock_variants": low_stock_variants,
+        "order_queue": order_queue,
+        "review_queue": review_queue,
+        "sales_by_day": sales_by_day,
+    }
+    return render(request, "admin/dashboard_analytics.html", context)

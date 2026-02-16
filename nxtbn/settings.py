@@ -21,6 +21,7 @@ from pathlib import Path
 import os
 import sys
 from dotenv import load_dotenv
+from django.templatetags.static import static
 
 
 load_dotenv()
@@ -55,6 +56,8 @@ SECRET_KEY = get_env_var('SECRET_KEY')
 
 # SECURITY WARNING: Debug mode exposes sensitive information and should only be used during development.
 DEBUG = get_env_var("DEBUG", default=False, var_type=bool)
+if os.getenv("DEBUG") is None and "runserver" in sys.argv:
+    DEBUG = True
 ENABLE_RATE_LIMITING = get_env_var("ENABLE_RATE_LIMITING", default=True, var_type=bool)
 
 # SECURITY WARNING: Allowing all origins in production is a security risk.
@@ -80,6 +83,7 @@ SECURE_SSL_REDIRECT = get_env_var("SECURE_SSL_REDIRECT", default=False, var_type
 # Application definition
 
 INSTALLED_APPS = [
+    'unfold',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -122,6 +126,127 @@ HELPING_HAND_APPS = [
 
 INSTALLED_APPS += LOCAL_APPS + HELPING_HAND_APPS
 
+UNFOLD = {
+    "SITE_TITLE": "Flexymedical Yonetim",
+    "SITE_HEADER": "Flexymedical",
+    "SITE_SUBHEADER": "Magaza yonetim merkezi",
+    "SITE_LOGO": {
+        "light": lambda request: static("images/logo.png"),
+        "dark": lambda request: static("images/logo-full.png"),
+    },
+    "SITE_SYMBOL": None,
+    "COLORS": {
+        "primary": {
+            "50": "#fff7ed",
+            "100": "#ffedd5",
+            "200": "#fed7aa",
+            "300": "#fdba74",
+            "400": "#fb923c",
+            "500": "#f28c26",
+            "600": "#d97310",
+            "700": "#b45309",
+            "800": "#92400e",
+            "900": "#7c2d12",
+            "950": "#431407",
+        },
+    },
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "SHOW_LANGUAGES": True,
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": False,
+        "navigation": [
+            {
+                "title": "Operasyon",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Operasyon Panosu",
+                        "icon": "analytics",
+                        "link": "/admin/operations/analytics/",
+                    },
+                    {
+                        "title": "Siparisler",
+                        "icon": "shopping_cart",
+                        "link": "/admin/order/order/",
+                    },
+                    {
+                        "title": "Urunler",
+                        "icon": "inventory_2",
+                        "link": "/admin/product/product/",
+                    },
+                    {
+                        "title": "Odeme Islemleri",
+                        "icon": "payments",
+                        "link": "/admin/payment/paymenttransaction/",
+                    },
+                ],
+            },
+            {
+                "title": "Musteri",
+                "items": [
+                    {
+                        "title": "Kullanicilar",
+                        "icon": "group",
+                        "link": "/admin/users/user/",
+                    },
+                    {
+                        "title": "Adresler",
+                        "icon": "home_pin",
+                        "link": "/admin/users/customeraddress/",
+                    },
+                ],
+            },
+            {
+                "title": "Icerik ve Stok",
+                "items": [
+                    {
+                        "title": "Dosya Yoneticisi",
+                        "icon": "folder",
+                        "link": "/admin/filemanager/image/",
+                    },
+                    {
+                        "title": "Kampanyalar",
+                        "icon": "sell",
+                        "link": "/admin/discount/coupon/",
+                    },
+                    {
+                        "title": "Vergi Kurallari",
+                        "icon": "receipt_long",
+                        "link": "/admin/tax/taxrule/",
+                    },
+                    {
+                        "title": "Anasayfa Slayt",
+                        "icon": "view_carousel",
+                        "link": "/admin/home/homeslide/",
+                    },
+                    {
+                        "title": "Tedarikciler",
+                        "icon": "local_shipping",
+                        "link": "/admin/vendor/vendor/",
+                    },
+                ],
+            },
+            {
+                "title": "Site Icerigi",
+                "items": [
+                    {
+                        "title": "Navbar ve Footer Metinleri",
+                        "icon": "menu_book",
+                        "link": "/admin/home/sitenavtext/",
+                    },
+                    {
+                        "title": "Sosyal Medya Linkleri",
+                        "icon": "share",
+                        "link": "/admin/home/footersociallink/",
+                    },
+                ],
+            },
+        ],
+    },
+}
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'nxtbn.core.middleware.SecurityHeadersMiddleware',
@@ -157,6 +282,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'nxtbn.home.context_processors.storefront_navigation_content',
             ],
         },
     },
@@ -224,7 +350,7 @@ LANGUAGES = [
     ("en", "English"),
 ]
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Istanbul'
 
 USE_I18N = True
 
@@ -257,7 +383,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # more details can be found here http://whitenoise.evans.io/en/stable/
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Use non-manifest storage during development so admin CSS updates are visible immediately.
+if DEBUG:
+    STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+else:
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
 # More details can be found here: https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html

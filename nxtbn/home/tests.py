@@ -33,3 +33,13 @@ class HomeViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "home/module_detail.html")
+
+    def test_about_page_renders(self):
+        response = self.client.get(reverse("about_page"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "home/about.html")
+
+    def test_contact_page_renders(self):
+        response = self.client.get(reverse("contact_page"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "home/contact.html")

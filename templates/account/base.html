@@ -99,10 +99,15 @@
                 </div>
                 <!-- Desktop Menu -->
                 <div class="hidden md:flex space-x-8">
-                    <a class="text-text-main dark:text-gray-300 hover:text-primary dark:hover:text-primary font-medium transition-colors" href="{% url 'products_list' %}">{% if LANGUAGE_CODE == 'tr' %}Tum Urunler{% else %}Shop All{% endif %}</a>
-                    <a class="text-text-main dark:text-gray-300 hover:text-primary dark:hover:text-primary font-medium transition-colors" href="#">{% if LANGUAGE_CODE == 'tr' %}Diz ve Bacak{% else %}Knee &amp; Leg{% endif %}</a>
-                    <a class="text-text-main dark:text-gray-300 hover:text-primary dark:hover:text-primary font-medium transition-colors" href="#">{% if LANGUAGE_CODE == 'tr' %}Bilek ve El{% else %}Wrist &amp; Hand{% endif %}</a>
-                    <a class="text-text-main dark:text-gray-300 hover:text-primary dark:hover:text-primary font-medium transition-colors" href="#">{% if LANGUAGE_CODE == 'tr' %}Ameliyat Sonrasi{% else %}Post-Surgery{% endif %}</a>
+                    {% for item in managed_nav_items %}
+                        <a
+                            class="text-text-main dark:text-gray-300 hover:text-primary dark:hover:text-primary font-medium transition-colors"
+                            href="{{ item.url }}"
+                            {% if item.is_external %}target="_blank" rel="noopener noreferrer"{% endif %}
+                        >
+                            {{ item.label }}
+                        </a>
+                    {% endfor %}
                 </div>
                 <!-- Icons -->
                 <div class="flex items-center space-x-6">
@@ -174,7 +179,7 @@
     <!-- Footer -->
     <footer class="bg-white dark:bg-[#110c08] border-t border-gray-100 dark:border-white/10 pt-16 pb-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-12">
                 <!-- Brand Info -->
                 <div class="col-span-1 lg:col-span-1">
                     <div class="flex items-center gap-2 mb-4">
@@ -189,31 +194,32 @@
                         {% endif %}
                     </p>
                     <div class="flex space-x-4">
-                        <a class="text-gray-400 hover:text-primary transition-colors" href="#"><i class="material-icons text-xl">facebook</i></a>
-                        <a class="text-gray-400 hover:text-primary transition-colors" href="#"><i class="material-icons text-xl">camera_alt</i></a> 
-                        <a class="text-gray-400 hover:text-primary transition-colors" href="#"><i class="material-icons text-xl">alternate_email</i></a>
+                        {% for social in managed_social_links %}
+                            <a class="text-gray-400 hover:text-primary transition-colors inline-flex items-center" href="{{ social.url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ social.label }}">
+                                {% if social.icon %}
+                                    <i class="material-icons text-xl">{{ social.icon }}</i>
+                                {% else %}
+                                    <span class="text-xs font-semibold uppercase">{{ social.platform_display }}</span>
+                                {% endif %}
+                            </a>
+                        {% endfor %}
                     </div>
                 </div>
-                <!-- Quick Links -->
+                <!-- Shared Links -->
                 <div>
-                    <h3 class="text-sm font-semibold text-text-main dark:text-white uppercase tracking-wider mb-4">{% if LANGUAGE_CODE == 'tr' %}Magaza{% else %}Shop{% endif %}</h3>
+                    <h3 class="text-sm font-semibold text-text-main dark:text-white uppercase tracking-wider mb-4">{% if LANGUAGE_CODE == 'tr' %}Hizli Linkler{% else %}Quick Links{% endif %}</h3>
                     <ul class="space-y-3">
-                        <li><a class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm" href="#">{% if LANGUAGE_CODE == 'tr' %}Dizlikler{% else %}Knee Braces{% endif %}</a></li>
-                        <li><a class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm" href="#">{% if LANGUAGE_CODE == 'tr' %}Bilek Destekleri{% else %}Wrist Supports{% endif %}</a></li>
-                        <li><a class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm" href="#">{% if LANGUAGE_CODE == 'tr' %}Sirt ve Omurga{% else %}Back &amp; Spine{% endif %}</a></li>
-                        <li><a class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm" href="#">{% if LANGUAGE_CODE == 'tr' %}Ayak Bilegi Urunleri{% else %}Ankle Sleeves{% endif %}</a></li>
-                        <li><a class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm" href="#">{% if LANGUAGE_CODE == 'tr' %}Yeni Gelenler{% else %}New Arrivals{% endif %}</a></li>
-                    </ul>
-                </div>
-                <!-- Support -->
-                <div>
-                    <h3 class="text-sm font-semibold text-text-main dark:text-white uppercase tracking-wider mb-4">{% if LANGUAGE_CODE == 'tr' %}Destek{% else %}Support{% endif %}</h3>
-                    <ul class="space-y-3">
-                        <li><a class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm" href="#">{% if LANGUAGE_CODE == 'tr' %}Beden Rehberi{% else %}Size Guide{% endif %}</a></li>
-                        <li><a class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm" href="#">{% if LANGUAGE_CODE == 'tr' %}Kargo ve Iade{% else %}Shipping &amp; Returns{% endif %}</a></li>
-                        <li><a class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm" href="#">{% if LANGUAGE_CODE == 'tr' %}Garanti Bilgisi{% else %}Warranty Info{% endif %}</a></li>
-                        <li><a class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm" href="#">{% if LANGUAGE_CODE == 'tr' %}Iletisim{% else %}Contact Us{% endif %}</a></li>
-                        <li><a class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm" href="#">{% if LANGUAGE_CODE == 'tr' %}SSS{% else %}FAQ{% endif %}</a></li>
+                        {% for item in managed_nav_items %}
+                            <li>
+                                <a
+                                    class="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm"
+                                    href="{{ item.url }}"
+                                    {% if item.is_external %}target="_blank" rel="noopener noreferrer"{% endif %}
+                                >
+                                    {{ item.label }}
+                                </a>
+                            </li>
+                        {% endfor %}
                     </ul>
                 </div>
                 <!-- Newsletter -->
@@ -227,7 +233,7 @@
                 </div>
             </div>
             <div class="border-t border-gray-100 dark:border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                <p class="text-gray-400 text-xs">{% if LANGUAGE_CODE == 'tr' %}2023 Flexy Medical Inc. Tum haklari saklidir.{% else %}2023 Flexy Medical Inc. All rights reserved.{% endif %}</p>
+                <p class="text-gray-400 text-xs">{% now "Y" %} Flexy Medical Inc. {% if LANGUAGE_CODE == 'tr' %}Tum haklari saklidir.{% else %}All rights reserved.{% endif %}</p>
                 <div class="flex gap-4">
                      <!-- Payment Icons (using text/placeholders for now if images fail, but kept existing structure) -->
                      <span class="text-gray-400 text-xs">Visa | Mastercard | Amex | PayPal</span>

@@ -7,14 +7,22 @@ from nxtbn.core.models import AbstractBaseModel
 class Image(AbstractBaseModel):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='image_created')
     last_modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='image_modified', null=True, blank=True)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, verbose_name="Ad")
     image = models.ImageField()
-    image_alt_text = models.CharField(max_length=255)
+    image_alt_text = models.CharField(max_length=255, verbose_name="Gorsel Alt Metni")
+
+    class Meta:
+        verbose_name = "Gorsel"
+        verbose_name_plural = "Gorseller"
 
 
 class Document(AbstractBaseModel):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='document_created')
     last_modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='document_modified', null=True, blank=True)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, verbose_name="Ad")
     document = models.FileField()
-    image_alt_text = models.CharField(max_length=255)
+    image_alt_text = models.CharField(max_length=255, verbose_name="Dosya Alt Metni")
+
+    class Meta:
+        verbose_name = "Dokuman"
+        verbose_name_plural = "Dokumanlar"

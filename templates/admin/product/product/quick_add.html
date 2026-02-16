@@ -1,0 +1,115 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block bodyclass %}{{ block.super }} app-product model-product change-form{% endblock %}
+
+{% block content %}
+<div id="content-main" class="ops-form-shell{% if is_popup %} ops-form-shell--popup{% endif %}">
+    {% if form.non_field_errors %}
+        <div class="errornote">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" novalidate class="ops-form-element">
+        {% csrf_token %}
+        {% if is_popup %}
+            <input type="hidden" name="{{ is_popup_var }}" value="1">
+        {% endif %}
+        {% if to_field %}
+            <input type="hidden" name="{{ to_field_var }}" value="{{ to_field }}">
+        {% endif %}
+
+        <div class="ops-form-card">
+            <div class="ops-form-card__header">
+                <h1 class="ops-form-card__title">{{ title }}</h1>
+                <p class="ops-form-card__subtitle">
+                    {% if LANGUAGE_CODE|slice:":2" == "tr" %}
+                        Bu ekran operasyon ekibi icin hizli urun olusturma yoludur. Urun taslak olarak kaydedilir.
+                    {% else %}
+                        This screen lets operations staff create a product quickly. The product is saved as draft.
+                    {% endif %}
+                </p>
+                <div class="ops-form-shortcuts">
+                    <a href="{% url 'admin:product_category_changelist' %}" class="ops-hide-in-popup">{% if LANGUAGE_CODE|slice:":2" == "tr" %}Kategoriler{% else %}Categories{% endif %}</a>
+                    <a href="{% url 'admin:vendor_vendor_changelist' %}" class="ops-hide-in-popup">{% if LANGUAGE_CODE|slice:":2" == "tr" %}Tedarikciler{% else %}Vendors{% endif %}</a>
+                </div>
+            </div>
+
+            <div class="ops-form-card__content">
+                <div class="ops-form-grid ops-form-grid--2">
+                    {% for field in form %}
+                        <div class="ops-form-field{% if field.name == 'name' or field.name == 'new_vendor_name' or field.name == 'image' %} ops-form-span-full{% endif %}">
+                            {{ field.errors }}
+                            {{ field.label_tag }}
+                            {% if field.name == "image" %}
+                                <div class="ops-image-upload">
+                                    {{ field }}
+                                    <div class="ops-image-preview" id="quick-product-image-preview">
+                                        <img id="quick-product-image-preview-img" alt="Gorsel Onizleme" />
+                                    </div>
+                                </div>
+                            {% else %}
+                                {{ field }}
+                            {% endif %}
+                            {% if field.help_text %}
+                                <div class="help">{{ field.help_text }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    <div class="ops-form-field ops-form-span-full">
+                        <label>{% if LANGUAGE_CODE|slice:":2" == "tr" %}Durum{% else %}Status{% endif %}</label>
+                        <div class="readonly">{% if LANGUAGE_CODE|slice:":2" == "tr" %}Taslak (Yayinda degil){% else %}Draft (Not live){% endif %}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ops-form-actions">
+                <div class="submit-row">
+                    <button type="submit" name="_continue" value="1" class="ops-btn ops-btn--primary">{% if LANGUAGE_CODE|slice:":2" == "tr" %}Kaydet ve Urunu Ac{% else %}Save and Open Product{% endif %}</button>
+                    <button type="submit" name="_addanother" value="1" class="ops-btn ops-btn--secondary">{% if LANGUAGE_CODE|slice:":2" == "tr" %}Kaydet ve Yeni Urun{% else %}Save and New Product{% endif %}</button>
+                    <a href="{{ advanced_add_url }}" class="ops-btn ops-btn--secondary ops-hide-in-popup">{% if LANGUAGE_CODE|slice:":2" == "tr" %}Gelismis Forma Gec{% else %}Go to Advanced Form{% endif %}</a>
+                    <a href="{{ changelist_url }}" class="ops-btn ops-btn--secondary ops-hide-in-popup">{% if LANGUAGE_CODE|slice:":2" == "tr" %}Listeye Don{% else %}Back to List{% endif %}</a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+(function () {
+    const input = document.getElementById("id_image");
+    const preview = document.getElementById("quick-product-image-preview");
+    const img = document.getElementById("quick-product-image-preview-img");
+    if (!input || !preview || !img) {
+        return;
+    }
+    img.alt = "{{ LANGUAGE_CODE|slice:':2' }}" === "tr" ? "Gorsel Onizleme" : "Image Preview";
+
+    const hidePreview = function () {
+        preview.classList.remove("ops-image-preview--visible");
+        img.removeAttribute("src");
+    };
+
+    input.addEventListener("change", function (event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) {
+            hidePreview();
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            if (!e.target || !e.target.result) {
+                hidePreview();
+                return;
+            }
+            img.src = e.target.result;
+            preview.classList.add("ops-image-preview--visible");
+        };
+        reader.readAsDataURL(file);
+    });
+})();
+</script>
+{% endblock %}

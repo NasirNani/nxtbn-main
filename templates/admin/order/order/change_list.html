@@ -1,8 +1,18 @@
 {% extends "admin/change_list.html" %}
+{% load admin_urls %}
 
-{% block object-tools-items %}
-{{ block.super }}
-<li>
-    <a href="{% url 'admin:order_order_export_csv' %}" class="historylink">Export All CSV</a>
-</li>
+{% block object-tools %}
+<div class="object-tools">
+    <div class="flex flex-row items-center gap-2 whitespace-nowrap">
+        {% if has_add_permission %}
+            {% url cl.opts|admin_urlname:"add" as add_url %}
+            <a href="{% add_preserved_filters add_url is_popup to_field %}" class="addlink bg-primary-600 flex h-8 w-8 items-center justify-center rounded-full sm:h-9 sm:w-9" title="Siparis ekle" aria-label="Siparis ekle">
+                <span class="material-symbols-outlined text-white md-18">add</span>
+            </a>
+        {% endif %}
+        <a href="{% url 'admin:order_order_export_csv' %}" class="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 text-font-importantLight hover:bg-gray-100 dark:border-gray-700 dark:text-font-importantDark dark:hover:bg-gray-800 sm:h-9 sm:w-9" title="Tumunu CSV Disa Aktar" aria-label="Tumunu CSV Disa Aktar">
+            <span class="material-symbols-outlined md-18">download</span>
+        </a>
+    </div>
+</div>
 {% endblock %}

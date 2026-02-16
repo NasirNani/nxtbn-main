@@ -5,12 +5,12 @@ from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .models import Product, ProductReview, ProductVariant
-from .utils import is_variant_available
+from .utils import is_variant_available, resolve_product_card_image
 from nxtbn.core.enum_helper import StockStatus
 
 
 def products_list(request):
-    products = Product.objects.select_related("vendor", "default_variant").prefetch_related(
+    products = Product.objects.select_related("vendor", "default_variant", "category_ref").prefetch_related(
         "variants",
         "variants__variant_image",
     )
@@ -38,13 +38,15 @@ def products_list(request):
         ),
     )
 
-    categories = (
-        products.exclude(category__isnull=True)
-        .exclude(category__exact="")
-        .values("category")
+    categories_qs = (
+        products.annotate(display_category=Coalesce("category_ref__name", "category"))
+        .exclude(display_category__isnull=True)
+        .exclude(display_category__exact="")
+        .values("display_category")
         .annotate(total=Count("id"))
-        .order_by("category")
+        .order_by("display_category")
     )
+    categories = [{"category": row["display_category"], "total": row["total"]} for row in categories_qs]
 
     selected_category = request.GET.get("category", "").strip()
     selected_prices = request.GET.getlist("price")
@@ -56,12 +58,13 @@ def products_list(request):
             Q(name__icontains=selected_query)
             | Q(summary__icontains=selected_query)
             | Q(description__icontains=selected_query)
+            | Q(category_ref__name__icontains=selected_query)
             | Q(category__icontains=selected_query)
             | Q(vendor__name__icontains=selected_query)
         )
 
     if selected_category:
-        products = products.filter(category=selected_category)
+        products = products.filter(Q(category_ref__name=selected_category) | Q(category=selected_category))
 
     valid_price_filters = []
     price_query = Q()
@@ -93,6 +96,9 @@ def products_list(request):
 
     paginator = Paginator(products, 9)
     page_obj = paginator.get_page(request.GET.get("page") or 1)
+    product_list = list(page_obj.object_list)
+    for product in product_list:
+        product.card_image = resolve_product_card_image(product)
     query_params = request.GET.copy()
     query_params.pop("page", None)
 
@@ -100,7 +106,7 @@ def products_list(request):
         request,
         "store/catalog.html",
         {
-            "products": page_obj.object_list,
+            "products": product_list,
             "page_obj": page_obj,
             "categories": categories,
             "selected_category": selected_category,
@@ -179,9 +185,14 @@ def product_detail(request, product_id):
         .filter(is_live=True)
         .exclude(id=product.id)
     )
-    if product.category:
-        related_products = related_products.filter(category=product.category)
-    related_products = related_products[:4]
+    product_category = product.effective_category
+    if product_category:
+        related_products = related_products.filter(
+            Q(category_ref__name=product_category) | Q(category=product_category)
+        )
+    related_products = list(related_products[:4])
+    for related in related_products:
+        related.card_image = resolve_product_card_image(related)
 
     user_review = None
     if request.user.is_authenticated:

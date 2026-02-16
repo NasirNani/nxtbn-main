@@ -3,9 +3,11 @@ from django.http import Http404
 from django.db import DatabaseError
 from django.shortcuts import render
 from django.db.models import Count
+from django.db.models.functions import Coalesce
 
 from nxtbn.home.models import HomeSlide
 from nxtbn.product.models import Product
+from nxtbn.product.utils import resolve_product_card_image
 
 
 MODULES = [
@@ -47,18 +49,25 @@ def _build_model_summary(app_label):
 
 def home(request):
     hero_slides = HomeSlide.objects.select_related("image").filter(is_active=True)
-    products = Product.objects.select_related("vendor", "default_variant").prefetch_related("variants")
+    products = Product.objects.select_related("vendor", "default_variant").prefetch_related(
+        "variants",
+        "variants__variant_image",
+    )
     live_products = products.filter(is_live=True)
     featured_products = live_products if live_products.exists() else products
-    featured_products = featured_products[:6]
+    featured_products = list(featured_products[:6])
+    for product in featured_products:
+        product.card_image = resolve_product_card_image(product)
 
     categories = (
-        Product.objects.exclude(category__isnull=True)
-        .exclude(category__exact="")
-        .values("category")
+        Product.objects.annotate(display_category=Coalesce("category_ref__name", "category"))
+        .exclude(display_category__isnull=True)
+        .exclude(display_category__exact="")
+        .values("display_category")
         .annotate(total=Count("id"))
-        .order_by("-total", "category")[:6]
+        .order_by("-total", "display_category")[:6]
     )
+    categories = [{"category": row["display_category"], "total": row["total"]} for row in categories]
 
     return render(
         request,
@@ -73,6 +82,14 @@ def home(request):
 
 def modules_index(request):
     return render(request, "home/modules_index.html", {"modules": MODULES})
+
+
+def about_page(request):
+    return render(request, "home/about.html")
+
+
+def contact_page(request):
+    return render(request, "home/contact.html")
 
 
 def module_detail(request, app_label):

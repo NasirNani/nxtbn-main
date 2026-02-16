@@ -5,7 +5,8 @@ name = "pypi"
 
 [packages]
 django = "==4.2.11"
-django-allauth = "*"
+django-unfold = "==0.43.0"
+django-allauth = "==0.62.1"
 django-extensions = "*"
 djangorestframework = "*"
 drf-yasg = "*"

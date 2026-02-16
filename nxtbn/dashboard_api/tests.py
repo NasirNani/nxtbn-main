@@ -24,7 +24,7 @@ class DashboardAccessTests(TestCase):
         self.client.force_login(self.staff)
         response = self.client.get(reverse("admin_analytics_dashboard"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Operations Dashboard")
+        self.assertContains(response, "Operasyon Panosu")
 
     def test_non_staff_cannot_view_dashboard(self):
         self.client.force_login(self.user)

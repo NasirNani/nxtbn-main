@@ -1,0 +1,39 @@
+{% load i18n %}
+
+<div class="relative z-50">
+    <div
+        @click="sidebarMobileOpen = !sidebarMobileOpen"
+        class="fixed bottom-0 bg-gray-700 cursor-pointer flex items-center left-0 mb-2 ml-2 justify-center px-2 py-1 rounded-full shadow-sm text-xs text-white uppercase z-50 xl:hidden"
+        :class="{'ml-72 -translate-x-1/2': sidebarMobileOpen}"
+    >
+        {% trans "Menu" %}
+    </div>
+
+    <div
+        class="hidden xl:block"
+        x-show="sidebarDesktopOpen"
+        x-transition:enter="transition-all duration-300 ease-out"
+        x-transition:enter-start="-translate-x-6 opacity-0"
+        x-transition:enter-end="translate-x-0 opacity-100"
+        x-transition:leave="transition-all duration-250 ease-in"
+        x-transition:leave-start="translate-x-0 opacity-100"
+        x-transition:leave-end="-translate-x-6 opacity-0"
+        style="display: none;"
+    >
+        {% include "unfold/helpers/navigation.html" %}
+    </div>
+
+    <div
+        class="max-xl:fixed xl:hidden"
+        x-show="sidebarMobileOpen"
+        x-transition:enter="transition-all duration-300 ease-out"
+        x-transition:enter-start="-translate-x-6 opacity-0"
+        x-transition:enter-end="translate-x-0 opacity-100"
+        x-transition:leave="transition-all duration-250 ease-in"
+        x-transition:leave-start="translate-x-0 opacity-100"
+        x-transition:leave-end="-translate-x-6 opacity-0"
+        style="display: none;"
+    >
+        {% include "unfold/helpers/navigation.html" %}
+    </div>
+</div>

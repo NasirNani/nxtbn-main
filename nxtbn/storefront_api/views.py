@@ -35,7 +35,7 @@ def _product_payload(product):
         "id": str(product.id),
         "name": product.name,
         "summary": product.summary,
-        "category": product.category,
+        "category": product.effective_category,
         "vendor": getattr(product.vendor, "name", ""),
         "price": str(getattr(product, "display_price", None) or (variant.price if variant else "0")),
         "rating": float(getattr(product, "average_rating", 0) or 0),
@@ -74,7 +74,9 @@ def _to_bool(value, default=False):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def products_api(request):
-    products = Product.objects.select_related("vendor", "default_variant").prefetch_related("variants", "variants__variant_image")
+    products = Product.objects.select_related("vendor", "default_variant", "category_ref").prefetch_related(
+        "variants", "variants__variant_image"
+    )
     live_products = products.filter(is_live=True)
     products = live_products if live_products.exists() else products
     products = products.annotate(
@@ -90,10 +92,12 @@ def products_api(request):
             Q(name__icontains=query)
             | Q(summary__icontains=query)
             | Q(description__icontains=query)
+            | Q(category_ref__name__icontains=query)
+            | Q(category__icontains=query)
             | Q(vendor__name__icontains=query)
         )
     if category:
-        products = products.filter(category=category)
+        products = products.filter(Q(category_ref__name=category) | Q(category=category))
 
     sort = (request.GET.get("sort", "popular") or "popular").strip()
     if sort == "newest":
@@ -122,7 +126,9 @@ def products_api(request):
 @permission_classes([AllowAny])
 def product_detail_api(request, product_id):
     product = get_object_or_404(
-        Product.objects.select_related("vendor", "default_variant").prefetch_related("variants", "variants__variant_image"),
+        Product.objects.select_related("vendor", "default_variant", "category_ref").prefetch_related(
+            "variants", "variants__variant_image"
+        ),
         id=product_id,
     )
     payload = _product_payload(product)

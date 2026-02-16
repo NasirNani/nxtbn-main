@@ -92,19 +92,13 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for product in featured_products %}
                 <article class="rounded-xl bg-white dark:bg-[#2c2219] border border-gray-100 dark:border-gray-800 p-5">
-                    {% with variant=product.default_variant|default:product.variants.first %}
-                        {% if variant %}
-                            {% with card_image=variant.variant_image.first %}
-                                <a href="{% url 'product_detail' product.id %}" class="block mb-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 aspect-[4/3]">
-                                    {% if card_image %}
-                                        <img src="{{ card_image.image.url }}" alt="{{ card_image.image_alt_text|default:product.name }}" class="h-full w-full object-cover">
-                                    {% else %}
-                                        <div class="h-full w-full flex items-center justify-center text-gray-500 dark:text-gray-400">{% if LANGUAGE_CODE == 'tr' %}Gorsel Yok{% else %}No Image{% endif %}</div>
-                                    {% endif %}
-                                </a>
-                            {% endwith %}
+                    <a href="{% url 'product_detail' product.id %}" class="block mb-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 aspect-[4/3]">
+                        {% if product.card_image %}
+                            <img src="{{ product.card_image.image.url }}" alt="{{ product.card_image.image_alt_text|default:product.name }}" class="h-full w-full object-cover">
+                        {% else %}
+                            <div class="h-full w-full flex items-center justify-center text-gray-500 dark:text-gray-400">{% if LANGUAGE_CODE == 'tr' %}Gorsel Yok{% else %}No Image{% endif %}</div>
                         {% endif %}
-                    {% endwith %}
+                    </a>
                     <h3 class="text-lg font-bold text-text-main dark:text-white">
                         <a href="{% url 'product_detail' product.id %}" class="hover:text-primary transition-colors">{{ product.name }}</a>
                     </h3>

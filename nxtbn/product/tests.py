@@ -1,8 +1,10 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.core.cache import cache
+from django.core.files.uploadedfile import SimpleUploadedFile
 
-from nxtbn.product.models import Product, ProductReview, ProductVariant
+from nxtbn.filemanager.models import Image
+from nxtbn.product.models import Category, Product, ProductReview, ProductVariant
 from nxtbn.users.models import User
 from nxtbn.vendor.models import Vendor
 
@@ -76,3 +78,66 @@ class ProductViewsTests(TestCase):
         self.assertEqual(response.status_code, 302)
         review = ProductReview.objects.get(product=self.product_a, user=self.user)
         self.assertEqual(review.rating, 5)
+
+    def test_catalog_uses_non_default_variant_image_as_fallback(self):
+        extra_variant = ProductVariant.objects.create(
+            product=self.product_a,
+            name="Alt",
+            compare_at_price="200.00",
+            price="180.00",
+            cost_per_unit="120.00",
+            stock=5,
+        )
+        gif_bytes = (
+            b"GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00"
+            b"\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,\x00"
+            b"\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
+        )
+        image = Image.objects.create(
+            created_by=self.user,
+            last_modified_by=self.user,
+            name="fallback",
+            image=SimpleUploadedFile("fallback.gif", gif_bytes, content_type="image/gif"),
+            image_alt_text="fallback",
+        )
+        extra_variant.variant_image.add(image)
+
+        response = self.client.get(reverse("products_list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, image.image.url)
+
+
+class ProductCategoryCompatibilityTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="owner", email="owner@example.com", password="pass12345")
+        self.vendor = Vendor.objects.create(name="Vendor")
+
+    def test_text_category_auto_maps_to_category_ref(self):
+        product = Product.objects.create(
+            created_by=self.user,
+            last_modified_by=self.user,
+            name="Neck Support",
+            summary="Summary",
+            description="Description",
+            category="  neck   support  ",
+            vendor=self.vendor,
+        )
+
+        self.assertIsNotNone(product.category_ref_id)
+        self.assertEqual(product.category_ref.name, "neck support")
+        self.assertEqual(product.category, "neck support")
+
+    def test_category_ref_syncs_legacy_text(self):
+        category = Category.objects.create(name="Ortez")
+        product = Product.objects.create(
+            created_by=self.user,
+            last_modified_by=self.user,
+            name="Back Brace",
+            summary="Summary",
+            description="Description",
+            category_ref=category,
+            vendor=self.vendor,
+        )
+
+        self.assertEqual(product.category_ref_id, category.id)
+        self.assertEqual(product.category, "Ortez")

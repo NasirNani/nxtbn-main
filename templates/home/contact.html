@@ -1,0 +1,26 @@
+{% extends "account/base.html" %}
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block head_title %}
+{% if LANGUAGE_CODE == 'tr' %}Iletisim | Flexy Medical{% else %}Contact | Flexy Medical{% endif %}
+{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="rounded-2xl bg-white dark:bg-[#2c2219] border border-gray-100 dark:border-gray-800 p-8">
+        <h1 class="text-3xl font-bold text-text-main dark:text-white">
+            {% if LANGUAGE_CODE == 'tr' %}Iletisim{% else %}Contact{% endif %}
+        </h1>
+        <p class="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
+            {% if LANGUAGE_CODE == 'tr' %}
+                Bizimle iletisime gecmek icin destek ekibimize ulasabilirsiniz.
+                Siparis, urun ve iade konularinda yardimci olmaya haziriz.
+            {% else %}
+                Reach out to our support team for any questions.
+                We are ready to help with orders, products, and returns.
+            {% endif %}
+        </p>
+    </div>
+</section>
+{% endblock %}

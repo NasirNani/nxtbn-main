@@ -164,7 +164,8 @@ def calculate_totals(request):
     tax = Decimal("0.00")
     tax_breakdown = []
     for item in items:
-        category = (item["product"].category or "").strip().lower()
+        category_name = (item["product"].effective_category or "").strip()
+        category = category_name.lower()
         rule = category_rule_map.get(category) or default_rule
         if not rule:
             continue
@@ -180,7 +181,7 @@ def calculate_totals(request):
         tax_breakdown.append(
             {
                 "label": rule.name,
-                "category": item["product"].category or "-",
+                "category": category_name or "-",
                 "rate": normalized_rate,
                 "amount": _as_money(line_tax),
             }

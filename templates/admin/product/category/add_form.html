@@ -1,0 +1,73 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block bodyclass %}{{ block.super }} app-product model-category change-form{% endblock %}
+
+{% block content_title %}
+<h1>{% if LANGUAGE_CODE|slice:":2" == "tr" %}Kategori Ekle{% else %}Add Category{% endif %}</h1>
+{% endblock %}
+
+{% block content %}
+<div id="content-main" class="ops-form-shell{% if is_popup %} ops-form-shell--popup{% endif %}">
+  {% if errors %}
+    <p class="errornote">
+      {% if errors|length == 1 %}
+        {% translate "Lutfen asagidaki hatayi duzeltin." %}
+      {% else %}
+        {% translate "Lutfen asagidaki hatalari duzeltin." %}
+      {% endif %}
+    </p>
+    {{ adminform.form.non_field_errors }}
+  {% endif %}
+
+  <form method="post" novalidate class="ops-form-element">
+    {% csrf_token %}
+    {% if is_popup %}
+      <input type="hidden" name="{{ is_popup_var }}" value="1">
+    {% endif %}
+    {% if to_field %}
+      <input type="hidden" name="{{ to_field_var }}" value="{{ to_field }}">
+    {% endif %}
+
+    <div class="ops-form-card">
+      <div class="ops-form-card__header">
+        <h1 class="ops-form-card__title">{% if LANGUAGE_CODE|slice:":2" == "tr" %}Kategori Ekle{% else %}Add Category{% endif %}</h1>
+        <p class="ops-form-card__subtitle">{% if LANGUAGE_CODE|slice:":2" == "tr" %}Kategoriyi hizlica olusturun. Kisa ve okunabilir bir slug girin.{% else %}Create a category quickly. Enter a short and readable slug.{% endif %}</p>
+        <div class="ops-form-shortcuts">
+          <a href="{% url 'admin:product_product_quick_add' %}" class="ops-hide-in-popup">{% if LANGUAGE_CODE|slice:":2" == "tr" %}Hizli Urun Ekle{% else %}Quick Add Product{% endif %}</a>
+          <a href="{% url 'admin:vendor_vendor_add' %}" class="ops-hide-in-popup">{% if LANGUAGE_CODE|slice:":2" == "tr" %}Tedarikci Ekle{% else %}Add Vendor{% endif %}</a>
+        </div>
+      </div>
+
+      <div class="ops-form-card__content">
+        <div class="ops-form-grid">
+          {% for field in adminform.form %}
+            <div class="ops-form-field">
+              {{ field.errors }}
+              {% if field.field.widget.input_type == "checkbox" %}
+                <label class="ops-form-check">{{ field }} <span>{{ field.label }}</span></label>
+              {% else %}
+                {{ field.label_tag }}
+                {{ field }}
+              {% endif %}
+              {% if field.help_text %}
+                <div class="help">{{ field.help_text|safe }}</div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="ops-form-actions">
+        <div class="submit-row">
+          <button type="submit" name="_save" class="ops-btn ops-btn--primary">{% if LANGUAGE_CODE|slice:":2" == "tr" %}Kaydet{% else %}Save{% endif %}</button>
+          <button type="submit" name="_continue" class="ops-btn ops-btn--secondary">{% if LANGUAGE_CODE|slice:":2" == "tr" %}Kaydet ve Duzenlemeye Devam Et{% else %}Save and Continue Editing{% endif %}</button>
+          <button type="submit" name="_addanother" class="ops-btn ops-btn--secondary">{% if LANGUAGE_CODE|slice:":2" == "tr" %}Kaydet ve Yeni Kategori{% else %}Save and Add Another Category{% endif %}</button>
+          <a href="{% url 'admin:product_category_changelist' %}" class="ops-btn ops-btn--secondary ops-hide-in-popup">{% if LANGUAGE_CODE|slice:":2" == "tr" %}Listeye Don{% else %}Back to List{% endif %}</a>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

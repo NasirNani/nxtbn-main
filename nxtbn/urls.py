@@ -39,9 +39,9 @@ if getattr(settings, 'DEVELOPMENT_SERVER') and not getattr(settings, 'DEBUG'):
 
 
 # Admin placeholder change
-admin.site.site_header = "nxtbn"
-admin.site.site_title = "nxtbn Admin Panel"
-admin.site.index_title = "nxtbn Admin"
+admin.site.site_header = "Flexymedical"
+admin.site.site_title = "Flexymedical Admin Panel"
+admin.site.index_title = "Flexymedical Admin"
 
 urlpatterns = [
     path("health/", core_views.health_check, name="health_check"),

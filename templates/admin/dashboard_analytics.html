@@ -3,32 +3,35 @@
 
 {% block content %}
 <div id="content-main">
-    <h1>Operations Dashboard</h1>
-    <p style="margin-bottom: 16px;">Operational overview for sales, orders, inventory, and review moderation.</p>
-    <p style="margin-bottom: 18px;">
-        <a href="{% url 'admin:product_product_import_csv' %}" class="button">Import Products CSV</a>
-        <a href="{% url 'admin:product_product_export_csv' %}" class="button">Export Products CSV</a>
-        <a href="{% url 'admin:order_order_export_csv' %}" class="button">Export Orders CSV</a>
-    </p>
-
-    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-bottom:20px;">
-        <div class="module"><h2>Total Orders</h2><p style="font-size:24px; font-weight:700;">{{ metrics.orders_total }}</p></div>
-        <div class="module"><h2>Pending</h2><p style="font-size:24px; font-weight:700;">{{ metrics.orders_pending }}</p></div>
-        <div class="module"><h2>Processing</h2><p style="font-size:24px; font-weight:700;">{{ metrics.orders_processing }}</p></div>
-        <div class="module"><h2>Paid</h2><p style="font-size:24px; font-weight:700;">{{ metrics.orders_paid }}</p></div>
-        <div class="module"><h2>30d Sales</h2><p style="font-size:24px; font-weight:700;">&#8378;{{ metrics.sales_30_days|floatformat:2 }}</p></div>
-        <div class="module"><h2>Total Products</h2><p style="font-size:24px; font-weight:700;">{{ metrics.products_total }}</p></div>
-        <div class="module"><h2>Live Products</h2><p style="font-size:24px; font-weight:700;">{{ metrics.products_live }}</p></div>
-        <div class="module"><h2>Low Stock</h2><p style="font-size:24px; font-weight:700;">{{ metrics.low_stock_count }}</p></div>
-        <div class="module"><h2>Pending Reviews</h2><p style="font-size:24px; font-weight:700;">{{ metrics.pending_reviews }}</p></div>
+    <div class="ops-header">
+        <h1>Operasyon Panosu</h1>
+        <p class="ops-note">Siparis, satis, stok ve yorum moderasyonunun genel ozeti.</p>
     </div>
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;">
-        <div class="module">
-            <h2>Order Queue</h2>
-            <table style="width:100%;">
+    <p class="ops-actions">
+        <a href="{% url 'admin:product_product_import_csv' %}" class="button">Urun CSV Ice Aktar</a>
+        <a href="{% url 'admin:product_product_export_csv' %}" class="button">Urun CSV Disa Aktar</a>
+        <a href="{% url 'admin:order_order_export_csv' %}" class="button">Siparis CSV Disa Aktar</a>
+    </p>
+
+    <div class="ops-grid">
+        <div class="module ops-card"><h2>Toplam Siparis</h2><p class="ops-metric">{{ metrics.orders_total }}</p></div>
+        <div class="module ops-card"><h2>Bekleyen</h2><p class="ops-metric">{{ metrics.orders_pending }}</p></div>
+        <div class="module ops-card"><h2>Isleniyor</h2><p class="ops-metric">{{ metrics.orders_processing }}</p></div>
+        <div class="module ops-card"><h2>Odendi</h2><p class="ops-metric">{{ metrics.orders_paid }}</p></div>
+        <div class="module ops-card"><h2>30 Gunluk Satis</h2><p class="ops-metric">&#8378;{{ metrics.sales_30_days|floatformat:2 }}</p></div>
+        <div class="module ops-card"><h2>Toplam Urun</h2><p class="ops-metric">{{ metrics.products_total }}</p></div>
+        <div class="module ops-card"><h2>Yayinda Urun</h2><p class="ops-metric">{{ metrics.products_live }}</p></div>
+        <div class="module ops-card"><h2>Dusuk Stok</h2><p class="ops-metric">{{ metrics.low_stock_count }}</p></div>
+        <div class="module ops-card"><h2>Bekleyen Yorum</h2><p class="ops-metric">{{ metrics.pending_reviews }}</p></div>
+    </div>
+
+    <div class="ops-grid-2">
+        <div class="module ops-card">
+            <h2>Siparis Sirasi</h2>
+            <table class="ops-table">
                 <thead>
-                    <tr><th>ID</th><th>Status</th><th>Total</th><th>Date</th></tr>
+                    <tr><th>ID</th><th>Durum</th><th>Tutar</th><th>Tarih</th></tr>
                 </thead>
                 <tbody>
                     {% for order in order_queue %}
@@ -39,17 +42,17 @@
                         <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="4">No pending queue.</td></tr>
+                    <tr><td colspan="4">Bekleyen siparis yok.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
 
-        <div class="module">
-            <h2>Low Stock Variants</h2>
-            <table style="width:100%;">
+        <div class="module ops-card">
+            <h2>Dusuk Stoklu Varyantlar</h2>
+            <table class="ops-table">
                 <thead>
-                    <tr><th>Product</th><th>Variant</th><th>Stock</th></tr>
+                    <tr><th>Urun</th><th>Varyant</th><th>Stok</th></tr>
                 </thead>
                 <tbody>
                     {% for variant in low_stock_variants %}
@@ -59,19 +62,19 @@
                         <td>{{ variant.stock }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="3">No low stock items.</td></tr>
+                    <tr><td colspan="3">Dusuk stoklu urun yok.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:18px;">
-        <div class="module">
-            <h2>Review Moderation Queue</h2>
-            <table style="width:100%;">
+    <div class="ops-grid-2">
+        <div class="module ops-card">
+            <h2>Yorum Moderasyon Sirasi</h2>
+            <table class="ops-table">
                 <thead>
-                    <tr><th>Product</th><th>User</th><th>Rating</th><th>Date</th></tr>
+                    <tr><th>Urun</th><th>Kullanici</th><th>Puan</th><th>Tarih</th></tr>
                 </thead>
                 <tbody>
                     {% for review in review_queue %}
@@ -82,17 +85,17 @@
                         <td>{{ review.created_at|date:"Y-m-d H:i" }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="4">No pending reviews.</td></tr>
+                    <tr><td colspan="4">Bekleyen yorum yok.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
 
-        <div class="module">
-            <h2>Daily Sales (30 Days)</h2>
-            <table style="width:100%;">
+        <div class="module ops-card">
+            <h2>Gunluk Satis (30 Gun)</h2>
+            <table class="ops-table">
                 <thead>
-                    <tr><th>Date</th><th>Orders</th><th>Total</th></tr>
+                    <tr><th>Tarih</th><th>Siparis</th><th>Toplam</th></tr>
                 </thead>
                 <tbody>
                     {% for row in sales_by_day %}
@@ -102,7 +105,7 @@
                         <td>&#8378;{{ row.total|floatformat:2 }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="3">No sales data in last 30 days.</td></tr>
+                    <tr><td colspan="3">Son 30 gunde satis verisi yok.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
