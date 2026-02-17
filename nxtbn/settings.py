@@ -374,8 +374,9 @@ else:
         os.path.join(BASE_DIR, 'static')
     ]
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = get_env_var("MEDIA_URL", default='/media/')
+MEDIA_ROOT = get_env_var("MEDIA_ROOT", default=os.path.join(BASE_DIR, 'media'))
+SERVE_MEDIA = get_env_var("SERVE_MEDIA", default=False, var_type=bool)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

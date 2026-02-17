@@ -13,10 +13,12 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+import re
 import sys
 from django.http import HttpResponse
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.static import serve
 from django.urls import re_path, path
 from django.contrib import admin
 from django.urls import path, include
@@ -84,3 +86,14 @@ urlpatterns += [
 # Serve uploaded media files in development-style environments.
 if settings.DEBUG or settings.DEVELOPMENT_SERVER:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+elif getattr(settings, "SERVE_MEDIA", False):
+    media_prefix = settings.MEDIA_URL.lstrip("/")
+    if not media_prefix.endswith("/"):
+        media_prefix += "/"
+    urlpatterns += [
+        re_path(
+            rf"^{re.escape(media_prefix)}(?P<path>.*)$",
+            serve,
+            {"document_root": settings.MEDIA_ROOT},
+        )
+    ]

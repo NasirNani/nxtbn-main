@@ -1,5 +1,3 @@
-from django.conf import settings
-from django.conf.urls.static import static
 from django.urls import path
 
 from . import views as home_views
@@ -11,4 +9,4 @@ urlpatterns = [
     path('contact/', home_views.contact_page, name='contact_page'),
     path('modules/', home_views.modules_index, name='modules_index'),
     path('modules/<slug:app_label>/', home_views.module_detail, name='module_detail'),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
