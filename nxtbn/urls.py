@@ -16,6 +16,7 @@ Including another URLconf
 import sys
 from django.http import HttpResponse
 from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import re_path, path
 from django.contrib import admin
 from django.urls import path, include
@@ -79,3 +80,7 @@ API_DOCS_SCHEMA_VIEWS = get_schema_view(
 urlpatterns += [
     path("api-playground/", API_DOCS_SCHEMA_VIEWS.with_ui("swagger", cache_timeout=0), name="api_playground")
 ]
+
+# Serve uploaded media files in development-style environments.
+if settings.DEBUG or settings.DEVELOPMENT_SERVER:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
