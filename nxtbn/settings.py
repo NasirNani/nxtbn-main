@@ -44,6 +44,17 @@ def get_env_var(key, default=None, var_type=str):
     return value
 
 
+def static_or_fallback(path):
+    """
+    Return manifest-hashed static URL when available.
+    Fall back to plain /static path to avoid 500 on missing manifest entries.
+    """
+    try:
+        return static(path)
+    except ValueError:
+        return f"/static/{path.lstrip('/')}"
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -131,8 +142,8 @@ UNFOLD = {
     "SITE_HEADER": "Flexymedical",
     "SITE_SUBHEADER": "Magaza yonetim merkezi",
     "SITE_LOGO": {
-        "light": lambda request: static("images/logo.png"),
-        "dark": lambda request: static("images/logo-full.png"),
+        "light": lambda request: static_or_fallback("images/logo.png"),
+        "dark": lambda request: static_or_fallback("images/logo-full.png"),
     },
     "SITE_SYMBOL": None,
     "COLORS": {
