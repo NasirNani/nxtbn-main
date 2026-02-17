@@ -5,6 +5,7 @@ import re
 from django.contrib import admin
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.shortcuts import redirect, render
 from django.urls import path, reverse
 from django.utils.translation import gettext_lazy as _
@@ -131,60 +132,61 @@ class ProductAdmin(AutoUserStampMixin, OpsAdminMixin, admin.ModelAdmin):
         return custom_urls + urls
 
     def _create_quick_product(self, request, cleaned_data):
-        product_name = cleaned_data["name"].strip()
-        category_ref = cleaned_data["category_ref"]
-        vendor = cleaned_data["resolved_vendor"]
-        stock_value = cleaned_data["stock"] or 0
-        price_value = cleaned_data["price"]
-        is_turkish = (request.LANGUAGE_CODE or "").startswith("tr")
-        summary_text = (
-            f"{product_name} icin hizli olusturulan urun kaydi."
-            if is_turkish
-            else f"Quickly created product record for {product_name}."
-        )
-        description_text = (
-            f"{product_name} urunu icin temel aciklama."
-            if is_turkish
-            else f"Basic description for {product_name}."
-        )
-        default_variant_name = "Varsayilan" if is_turkish else "Default"
+        with transaction.atomic():
+            product_name = cleaned_data["name"].strip()
+            category_ref = cleaned_data["category_ref"]
+            vendor = cleaned_data["resolved_vendor"]
+            stock_value = cleaned_data["stock"] or 0
+            price_value = cleaned_data["price"]
+            is_turkish = (request.LANGUAGE_CODE or "").startswith("tr")
+            summary_text = (
+                f"{product_name} icin hizli olusturulan urun kaydi."
+                if is_turkish
+                else f"Quickly created product record for {product_name}."
+            )
+            description_text = (
+                f"{product_name} urunu icin temel aciklama."
+                if is_turkish
+                else f"Basic description for {product_name}."
+            )
+            default_variant_name = "Varsayilan" if is_turkish else "Default"
 
-        product = Product.objects.create(
-            created_by=request.user,
-            last_modified_by=request.user,
-            name=product_name,
-            summary=summary_text,
-            description=description_text,
-            category_ref=category_ref,
-            vendor=vendor,
-            type=ProductType.SIMPLE_PRODUCT,
-            currency="TRY",
-            is_live=False,
-        )
-        variant = ProductVariant.objects.create(
-            product=product,
-            name=default_variant_name,
-            compare_at_price=price_value,
-            price=price_value,
-            cost_per_unit=price_value,
-            stock=stock_value,
-            track_inventory=True,
-            stock_status=StockStatus.IN_STOCK if stock_value > 0 else StockStatus.OUT_OF_STOCK,
-        )
-        Product.objects.filter(pk=product.pk).update(default_variant=variant, last_modified_by=request.user)
-        product.default_variant = variant
-
-        uploaded_image = cleaned_data.get("image")
-        if uploaded_image:
-            image_record = Image.objects.create(
+            product = Product.objects.create(
                 created_by=request.user,
                 last_modified_by=request.user,
-                name=_normalize_text(product_name)[:255],
-                image=uploaded_image,
-                image_alt_text=_normalize_text(product_name)[:255],
+                name=product_name,
+                summary=summary_text,
+                description=description_text,
+                category_ref=category_ref,
+                vendor=vendor,
+                type=ProductType.SIMPLE_PRODUCT,
+                currency="TRY",
+                is_live=False,
             )
-            variant.variant_image.add(image_record)
-        return product
+            variant = ProductVariant.objects.create(
+                product=product,
+                name=default_variant_name,
+                compare_at_price=price_value,
+                price=price_value,
+                cost_per_unit=price_value,
+                stock=stock_value,
+                track_inventory=True,
+                stock_status=StockStatus.IN_STOCK if stock_value > 0 else StockStatus.OUT_OF_STOCK,
+            )
+            Product.objects.filter(pk=product.pk).update(default_variant=variant, last_modified_by=request.user)
+            product.default_variant = variant
+
+            uploaded_image = cleaned_data.get("image")
+            if uploaded_image:
+                image_record = Image.objects.create(
+                    created_by=request.user,
+                    last_modified_by=request.user,
+                    name=_normalize_text(product_name)[:255],
+                    image=uploaded_image,
+                    image_alt_text=_normalize_text(product_name)[:255],
+                )
+                variant.variant_image.add(image_record)
+            return product
 
     def quick_add_view(self, request):
         if not self.has_add_permission(request):
@@ -194,7 +196,40 @@ class ProductAdmin(AutoUserStampMixin, OpsAdminMixin, admin.ModelAdmin):
         if request.method == "POST":
             form = QuickProductCreateForm(request.POST, request.FILES, can_create_vendor=can_create_vendor)
             if form.is_valid():
-                product = self._create_quick_product(request, form.cleaned_data)
+                try:
+                    product = self._create_quick_product(request, form.cleaned_data)
+                except PermissionError:
+                    is_turkish = (request.LANGUAGE_CODE or "").startswith("tr")
+                    image_error = (
+                        _("Medya klasorune yazma izni yok. MEDIA_ROOT ayarini kontrol edin.")
+                        if is_turkish
+                        else _("Cannot write to media storage. Check MEDIA_ROOT and storage permissions.")
+                    )
+                    form.add_error("image", image_error)
+                    product = None
+                except OSError as exc:
+                    is_turkish = (request.LANGUAGE_CODE or "").startswith("tr")
+                    image_error = (
+                        _("Gorsel yukleme basarisiz: %(error)s")
+                        if is_turkish
+                        else _("Image upload failed: %(error)s")
+                    ) % {"error": str(exc)}
+                    form.add_error("image", image_error)
+                    product = None
+                if not product:
+                    context = {
+                        **self.admin_site.each_context(request),
+                        "opts": self.model._meta,
+                        "title": _("Hizli Urun Ekle") if (request.LANGUAGE_CODE or "").startswith("tr") else _("Quick Add Product"),
+                        "form": form,
+                        "is_popup": request.GET.get("_popup") or request.POST.get("_popup"),
+                        "is_popup_var": "_popup",
+                        "to_field_var": "_to_field",
+                        "to_field": request.GET.get("_to_field") or request.POST.get("_to_field"),
+                        "advanced_add_url": reverse("admin:product_product_add"),
+                        "changelist_url": reverse("admin:product_product_changelist"),
+                    }
+                    return render(request, "admin/product/product/quick_add.html", context)
                 is_turkish = (request.LANGUAGE_CODE or "").startswith("tr")
                 success_message = "Hizli urun olusturma tamamlandi." if is_turkish else "Quick product creation completed."
                 self.message_user(request, success_message, level=messages.SUCCESS)
