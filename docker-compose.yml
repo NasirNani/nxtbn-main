@@ -6,7 +6,7 @@ services:
       context: .
     volumes:
       - static_data:/backend/staticfiles
-      - "./dist/media:/backend/media" # map to local machine
+      - "./media:/backend/media" # map to local machine
     env_file: # if .env in root, we have to show .env here must
       - ./.env
     # depends_on:
@@ -17,7 +17,7 @@ services:
       context: ./proxy
     volumes:
       - static_data:/backend/staticfiles
-      - "./dist/media:/backend/media" # map to local machine
+      - "./media:/backend/media" # map to local machine
     ports:
       - "80:80"
     env_file: # if .env in root, we have to show .env here must
